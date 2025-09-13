@@ -573,13 +573,43 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
         # Add timestamp and metadata if available
         if not result:  # Only get result if not already retrieved above
             result = request.get('result', {})
+        
+        metadata_lines = []
+        
+        # Add timing information
         if isinstance(result, dict):
             timings = result.get('timings', {})
             if 'totalElapsed' in timings:
                 elapsed_ms = timings['totalElapsed']
                 elapsed_s = elapsed_ms / 1000
-                md_lines.append(f"*Response time: {elapsed_s:.2f} seconds*")
-                md_lines.append("")
+                metadata_lines.append(f"> *Response time: {elapsed_s:.2f} seconds*")
+        
+        # Add model information
+        model_id = request.get('modelId', '')
+        details = request.get('details', '')
+        
+        if model_id or details:
+            model_info_parts = []
+            if model_id:
+                # Clean up the model ID for display
+                if model_id.startswith('copilot/'):
+                    model_display = model_id[8:]  # Remove 'copilot/' prefix
+                else:
+                    model_display = model_id
+                model_info_parts.append(model_display)
+            
+            if details and details != model_display:
+                model_info_parts.append(details)
+            
+            if model_info_parts:
+                model_info = ' • '.join(model_info_parts)
+                metadata_lines.append(f"> <br>*Model: {model_info}*")
+        
+        # Add all metadata lines
+        if metadata_lines:
+            for line in metadata_lines:
+                md_lines.append(line)
+            md_lines.append("")
         
         # Add separator between requests
         if i < len(requests):

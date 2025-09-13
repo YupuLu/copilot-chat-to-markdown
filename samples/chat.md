@@ -123,7 +123,8 @@ Great! Now I understand your current setup and requirements. Let me discuss the 
 
 Let me know your thoughts on these points, and I'll update the PRD accordingly. The tech stack change (removing SQLite) will also require minor updates to the copilot instructions.
 
-*Response time: 57.94 seconds*
+> *Response time: 57.94 seconds*
+> <br>*Model: claude-sonnet-4*
 
 ---
 
@@ -307,7 +308,8 @@ def resolve_field_conflicts(repo_data, schema):
 
 Once you confirm these details, I'll update the PRD with all this information. Does this structure approach make sense for your vision?
 
-*Response time: 51.27 seconds*
+> *Response time: 51.27 seconds*
+> <br>*Model: claude-sonnet-4*
 
 ---
 
@@ -423,7 +425,8 @@ I think we covered the main points! The only thing I'd add:
 
 Does the physical folder approach sound good to you? I think it's much cleaner than the YAML mapping approach. Once you confirm, I'll update the PRD with all these decisions!
 
-*Response time: 48.38 seconds*
+> *Response time: 48.38 seconds*
+> <br>*Model: claude-sonnet-4*
 
 ---
 
@@ -574,7 +577,8 @@ fields:
 
 Ready to update the PRD with all these details?
 
-*Response time: 32.14 seconds*
+> *Response time: 32.14 seconds*
+> <br>*Model: claude-sonnet-4*
 
 ---
 
@@ -598,7 +602,8 @@ Perfect. Yes do this now:
 
 I'll create the BRAINSTORM.md file with our conversation and then update the PRD with all our finalized decisions.
 
-*Response time: 102.91 seconds*
+> *Response time: 102.91 seconds*
+> <br>*Model: claude-sonnet-4*
 
 ---
 
@@ -2700,7 +2705,8 @@ Perfect! I've completed both tasks:
 
 The PRD is now comprehensive and ready to guide development. It includes all the architectural decisions we made, proper scope for v1.0, and clear technical specifications that align with your vision of a clean, efficient repo organizer that leverages GitHub's infrastructure.
 
-*Response time: 274.00 seconds*
+> *Response time: 274.00 seconds*
+> <br>*Model: claude-sonnet-4*
 
 ---
 
@@ -2732,7 +2738,8 @@ Would one of these approaches work better for you? Or if you have a specific por
 
 The BRAINSTORM.md file I already created captures the essence and flow of our discussion with all the key technical details and decisions - would expanding on that in a more detailed format be helpful instead?
 
-*Response time: 8.45 seconds*
+> *Response time: 8.45 seconds*
+> <br>*Model: claude-sonnet-4*
 
 ---
 
@@ -2779,4 +2786,5 @@ Once you get the verbatim text, I can help you create the `BRAINSTORM_VERBATIM.m
 
 Which method works for you?
 
-*Response time: 9.59 seconds*
+> *Response time: 9.59 seconds*
+> <br>*Model: claude-sonnet-4*
