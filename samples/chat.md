@@ -399,9 +399,9 @@ fields:
 ## Clarifications on Your Points:
 
 ✅ **Auto-save**: Every 30 seconds if changes detected + on navigation/close
-✅ **Archived immediately**: No 30-day delay, straight to "Archived" view
-✅ **"Unlink/Disconnect"** terminology instead of "delete"
-✅ **Field deletion warnings**: Count non-empty values and show examples
+<br>✅ **Archived immediately**: No 30-day delay, straight to "Archived" view
+<br>✅ **"Unlink/Disconnect"** terminology instead of "delete"
+<br>✅ **Field deletion warnings**: Count non-empty values and show examples
 
 ## Additional Considerations:
 

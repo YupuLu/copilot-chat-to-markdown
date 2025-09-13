@@ -73,6 +73,29 @@ def format_message_text(text: str) -> str:
                 clean_lines.append(line)
         text = '\n'.join(clean_lines)
     
+    # Fix checkmark lists that need proper spacing for markdown rendering
+    # Many markdown renderers don't properly separate lines that start with emojis
+    import re
+    lines = text.split('\n')
+    formatted_lines = []
+    
+    for i, line in enumerate(lines):
+        # If this line starts with a checkmark and it's not the first checkmark in a sequence,
+        # add a <br> before it to force a line break
+        if (line.strip().startswith('✅') and 
+            i > 0 and 
+            not lines[i - 1].strip().startswith('✅') and
+            lines[i - 1].strip() != ''):
+            formatted_lines.append(line)
+        elif (line.strip().startswith('✅') and 
+              i > 0 and 
+              lines[i - 1].strip().startswith('✅')):
+            formatted_lines.append('<br>' + line)
+        else:
+            formatted_lines.append(line)
+    
+    text = '\n'.join(formatted_lines)
+    
     # Clean up excessive whitespace but preserve intentional line breaks
     lines = text.split('\n')
     formatted_lines = []
@@ -81,6 +104,7 @@ def format_message_text(text: str) -> str:
         # Clean up the line but preserve leading/trailing spaces for formatting
         clean_line = line.rstrip()
         formatted_lines.append(clean_line)
+    
     
     # Remove excessive blank lines and clean up artifacts
     result_lines = []
