@@ -23,6 +23,10 @@ The actual MD output would look something like this:
 
 When you see a line ending in `...` in my messages, it often indicates that I have omitted some content for brevity because the omitted content is not essential to the main point being discussed.
 
+# Code fencing
+
+When embedding content in <details> blocks, double-check for proper code fencing. Especially ensure the fence closes properly with the same number of backticks as it opened with.
+
 # Validating Changes
 
 After any set of fixes to the conversion scripts, run the following and check the output:
