@@ -8,10 +8,10 @@ Convert GitHub Copilot chat logs from VS Code into readable Markdown format. Thi
 - ✅ **Shows tool operations**: Displays AI tool selection and file operations for context
 - ✅ **Clean output**: Filters out internal VS Code metadata while preserving conversation flow
 - ✅ **Two implementations**: Choose between Python (more robust) or Bash (lightweight)
-- ✅ **Response timing**: Includes response time information
+- ✅ **Response timing**: Includes response time information for performance insights
 - ✅ **Multiple requests**: Handles complete chat sessions with multiple back-and-forth exchanges
-- ✅ **Table of Contents**: Automatically generates clickable index with request summaries
-- ✅ **Navigation links**: Each request includes ^ (index), < (previous), > (next) navigation
+- ✅ **Table of Contents**: Auto-generated index with clickable links to each request
+- ✅ **Navigation links**: Each request includes ^ (back to index), < (previous request), > (next request) navigation
 - ✅ **Consolidated responses**: Extracts final AI responses rather than incremental updates
 
 ## Prerequisites
@@ -106,16 +106,6 @@ Reading [](file:///path/to/file.md)
 [Next exchange...]
 ```
 
-## Key Features Demonstrated
-
-- **Table of Contents**: Auto-generated index with clickable links to each request
-- **Navigation**: ^ (back to index), < (previous request), > (next request) links in headers
-- **Tool Operations**: Shows when AI selects tools, reads files, or performs operations
-- **Markdown Preservation**: Bold text (`**text**`), code blocks, and lists render correctly
-- **Clean Formatting**: Removes VS Code internal metadata while preserving conversation context
-- **Timing Information**: Includes response times for performance insights
-- **Consolidated Responses**: Extracts final AI responses rather than showing incremental updates
-
 ## Troubleshooting
 
 ### Bash Script Issues
@@ -152,4 +142,4 @@ Feel free to submit issues or pull requests to improve the scripts or add new fe
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License, which allows free use, modification, and distribution - see the [LICENSE](LICENSE) file for details.
