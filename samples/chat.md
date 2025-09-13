@@ -58,8 +58,128 @@ If the tech stack changes, also suggest changes to copilot-instructions.md
 ✔️ Optimizing tool selection...
 
 I'll help you create a comprehensive PRD for your Repo Organizer app. Let me first read the current PRD template to understand the structure and then discuss the key aspects before making changes.
+<details>
+  <summary>Read **PRD.md**</summary>
+
+```markdown
+# Product Requirements Document: [PROJECT_NAME]
+**Version:** 1.0
+**Date:** [DATE]
+## 1. Introduction & Vision
+[Describe the purpose and main value proposition of your product. Define your product vision - what problem you're solving and the impact you want to create.]
+## 2. Target Audience
+*   **Primary Users:** [Define your main user group]
+*   **Secondary Users:** [Define secondary user groups]
+*   **User Characteristics:** [Describe key characteristics, needs, and behaviors of your target users]
+## 3. Core Features & Functionality
+[List and describe the main features and functionality your product will provide. Define your primary interface approach, key UX principles, and design requirements.]
+## 4. Technical Stack & Architecture
+*   **Frontend:** **jQuery and Bootstrap 5**
+    *   **Versions:** Use latest stable versions via CDN (Content Delivery Network)
+    *   **Design:** Responsive design optimized for desktop use, with mobile compatibility
+    *   **UI:** [Define your specific UI requirements and design approach]
+*   **Backend:** **Flask** (Python)
+    *   **API:** RESTful API handling [define your API requirements]
+    *   **Logic:** [Describe your backend logic and data processing requirements]
+*   **Authentication:** [Define your authentication requirements and approach]
+    *   **Permissions:** [Specify required permissions and access levels]
+    *   **Scope:** [Define authentication scope and security requirements]
+*   **External APIs:** [List and describe required external API integrations]
+    *   **[API Name]:** [Describe how you'll use this API]
+    *   **[Additional APIs]:** [Add more as needed]
+*   **Database:** **Optional - Only if stateful data is required**
+    *   **Preference:** Design for stateless, scalable architecture without database dependencies if possible
+    *   **If Required:** **SQLite** (for initial development and simplicity)
+    *   **Schema:** [Describe your data model and storage requirements only if database is necessary]
+*   **Environment Configuration:**
+    *   **Local Development:** `.env` file for environment variables and configuration
+    *   **Environment Variables:** Store API keys, database URLs, and configuration settings
+    *   **Example File:** Provide `.env.example` with template values
+*   **Scripts for local Development & Deployment via Fly.io:**
+    *   **Local Launch:** Script to start the application locally (e.g., `run_local.py` or `start.sh`)
+    *   **Fly.io Deployment:** Script and configuration for deploying to Fly.io platform
+        *   **Environment Variables:** Copy all necessary env vars from `.env` to Fly.io secrets
+        *   **SQLite Volume:** If database is used, create persistent volume mount for SQLite file
+        *   **Fly.toml:** Configure app settings, volumes, and environment variable handling
+    *   **Dependencies:** Requirements management and virtual environment setup
+## 5. User Journey Flow
+**First-Time User:**
+[Define the initial user experience, authentication/signup process, initial setup steps, first use case completion, and confirmation/next steps]
+**Returning User:**
+[Define the returning user experience, how they access main functionality, common workflows, and ongoing engagement patterns]
+## 6. Security & Privacy Considerations
+*   **Authentication Security:** [Define authentication security requirements]
+*   **Data Protection:** [Specify how user data will be protected and stored]
+*   **Access Control:** [Define permission and access control requirements]
+*   **Audit Trail:** [Specify logging and auditing requirements]
+*   **Privacy Policy:** [Define data collection and privacy requirements]
+## 7. Exclusions (Out of Scope for Version 1.0)
+*   **[Feature/Capability]:** [Explain what's excluded and why]
+*   **[Feature/Capability]:** [Explain what's excluded and why]
+*   **[Feature/Capability]:** [Explain what's excluded and why]
+*   **[Advanced Features]:** [Define advanced features to be considered for future versions]
+## 8. Success Metrics
+*   **[Primary Metric]:** [Define how you'll measure primary success]
+*   **[Engagement Metric]:** [Define user engagement measurements]
+*   **[Quality Metric]:** [Define how you'll measure product quality/effectiveness]
+*   **[Retention Metric]:** [Define user retention and recurring usage metrics]
+*   **[Business Impact]:** [Define broader business or community impact measurements]
+```
+
+</details>
 
 Now let me also check the current copilot instructions to understand the tech stack context:
+<details>
+  <summary>Read **copilot-instructions.md#1-1**, lines 1 to 50</summary>
+
+````
+File: `/Users/peckjon/githubs/repo-organizer/.github/copilot-instructions.md`. Lines 1 to 50 (95 lines total): ```instructions
+## Operator Interaction
+- When asked to fix code, first explain the problems found.
+- When asked to generate tests, first explain what tests will be created.
+- When making multiple changes, provide a step-by-step overview first.
+## Security
+- Check the code for vulnerabilities after generating.
+- Avoid hardcoding sensitive information like credentials or API keys.
+- Use secure coding practices and validate all inputs.
+## Environment Variables
+- If a .env file exists, use it for local environment variables
+- Document any new environment variables in README.md
+- Provide example values in .env.example
+## Version Control
+- Keep commits atomic and focused on single changes
+- Follow conventional commit message format
+- Update .gitignore for new build artifacts or dependencies
+## Code Style
+- Follow existing project code style and conventions
+- Add type hints and docstrings for all new functions
+- Include comments for complex logic
+## Change Logging
+- Each time you generate code, note the changes in changelog.md
+- Follow semantic versioning guidelines
+- Include date and description of changes
+## Testing Requirements
+- Include unit tests for new functionality
+- Maintain minimum 80% code coverage
+- Add integration tests for API endpoints
+## For Python Projects Only
+- Always use a Python3 virtual environment: if no venv exists, create one and activate
+- Always use and update a requirements.txt file for Python modules
+- Follow PEP 8 style guidelines
+- Include type hints (PEP 484)
+## Flask + jQuery Integration
+- Use jQuery for client-side interactivity with Flask/Jinja2 templates
+- Include jQuery via CDN or download locally to `static/js/` directory
+- Use `$(document).ready()` to ensure DOM is loaded before executing jQuery code
+- Handle AJAX requests with jQuery's `$.ajax()`, `$.get()`, or `$.post()` methods
+- Use Flask's `url_for()` function in templates to generate API endpoints for AJAX calls
+- Implement proper error handling for AJAX requests with `.fail()` callbacks
+- Use jQuery selectors and DOM manipulation methods for dynamic content updates
+- Remember to copy updated JavaScript files to `static/js/` directory after changes
+```
+````
+
+</details>
 
 Great! Now I understand your current setup and requirements. Let me discuss the key aspects and recommendations before making changes:
 

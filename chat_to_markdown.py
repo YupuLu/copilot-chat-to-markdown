@@ -261,23 +261,28 @@ def format_tool_invocation_details(tool_data: Dict[str, Any], tool_call_results:
     
     # Clean up the invocation message to be more readable for display
     if '[](file://' in invocation_msg:
-        # Extract filename from file URI
+        # Extract filename from file URI and create clean display message
         import re
-        file_match = re.search(r'\[\]\(file://([^)]+)\)', invocation_msg)
+        file_match = re.search(r'\[\]\(file://([^)]+)(\#[^)]+)?\)', invocation_msg)
         if file_match:
             file_path = file_match.group(1)
+            fragment = file_match.group(2) or ''  # Handle URL fragments like #1-1
             file_name = file_path.split('/')[-1]
-            # Use past tense "Read" instead of "Reading"
-            invocation_msg = invocation_msg.replace('Reading [](', 'Read **').replace(file_match.group(0), f"**{file_name}**")
-            # Handle cases where there might be additional info after the file path
-            if ', lines ' in invocation_msg:
-                invocation_msg = invocation_msg.replace(', lines ', '**, lines ')
-            elif invocation_msg.endswith('**'):
-                pass  # Already properly formatted
+            
+            # Create clean message - check for additional info like line numbers
+            remaining_text = invocation_msg[invocation_msg.find(file_match.group(0)) + len(file_match.group(0)):]
+            
+            if fragment:
+                display_name = f"{file_name}{fragment}"
             else:
-                invocation_msg = invocation_msg.replace(f"**{file_name}**", f"**{file_name}**")
+                display_name = file_name
+            
+            if remaining_text.strip():
+                invocation_msg = f"Read **{display_name}**{remaining_text}"
+            else:
+                invocation_msg = f"Read **{display_name}**"
     
-    # Simple cleanup for common patterns
+    # Simple cleanup for other "Reading" patterns
     invocation_msg = invocation_msg.replace('Reading ', 'Read ')
     
     # Try to find the corresponding tool call in tool_call_rounds by matching the invocation message
