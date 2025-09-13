@@ -10,6 +10,9 @@ Convert GitHub Copilot chat logs from VS Code into readable Markdown format. Thi
 - ✅ **Two implementations**: Choose between Python (more robust) or Bash (lightweight)
 - ✅ **Response timing**: Includes response time information
 - ✅ **Multiple requests**: Handles complete chat sessions with multiple back-and-forth exchanges
+- ✅ **Table of Contents**: Automatically generates clickable index with request summaries
+- ✅ **Navigation links**: Each request includes ^ (index), < (previous), > (next) navigation
+- ✅ **Consolidated responses**: Extracts final AI responses rather than incremental updates
 
 ## Prerequisites
 
@@ -57,10 +60,9 @@ Open the generated Markdown file in any Markdown viewer or editor to see your fo
 
 The `samples/` directory contains example files:
 
-- **`chat.json`**: Original chat export from VS Code
-- **`chat_via_manual_copy.md`**: Manually copied chat (for comparison)
-- **`chat_via_script_python.md`**: Output from Python script
-- **`chat_via_script_bash.md`**: Output from Bash script
+- **`chat.json`**: Original chat export from VS Code (404KB conversation about a repo organizer project)
+- **`chat_via_script_python.md`**: Output from Python script with table of contents and navigation
+- **`chat_via_script_bash.md`**: Output from Bash script with identical features and formatting
 
 ## Output Format
 
@@ -72,9 +74,17 @@ The generated Markdown includes:
 **Participant:** username
 **Assistant:** GitHub Copilot
 
+<a name="table-of-contents"></a>
+## Table of Contents
+
+- [Request 1](#request-1): Brief summary of user request...
+- [Request 2](#request-2): Another request summary...
+- [Request 3](#request-3): Third request summary...
+
 ---
 
-## Request 1
+<a name="request-1"></a>
+## Request 1 [^](#table-of-contents) < [>](#request-2)
 
 ### User
 
@@ -90,17 +100,21 @@ Reading [](file:///path/to/file.md)
 
 ---
 
-## Request 2
+<a name="request-2"></a>
+## Request 2 [^](#table-of-contents) [<](#request-1) [>](#request-3)
 
 [Next exchange...]
 ```
 
 ## Key Features Demonstrated
 
+- **Table of Contents**: Auto-generated index with clickable links to each request
+- **Navigation**: ^ (back to index), < (previous request), > (next request) links in headers
 - **Tool Operations**: Shows when AI selects tools, reads files, or performs operations
 - **Markdown Preservation**: Bold text (`**text**`), code blocks, and lists render correctly
 - **Clean Formatting**: Removes VS Code internal metadata while preserving conversation context
 - **Timing Information**: Includes response times for performance insights
+- **Consolidated Responses**: Extracts final AI responses rather than showing incremental updates
 
 ## Troubleshooting
 
@@ -138,4 +152,4 @@ Feel free to submit issues or pull requests to improve the scripts or add new fe
 
 ## License
 
-This project is provided as-is for educational and personal use.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
