@@ -95,9 +95,7 @@ format_timestamp() {
     request_count=$(jq -r '.requests | length' "$INPUT_FILE")
     
     for ((i=0; i<request_count; i++)); do
-        echo "## Request $((i+1))"
-        
-        # Add navigation links: ^ (index), < (previous), > (next)
+        # Add navigation links on same line as Request header: ^ (index), < (previous), > (next)
         nav_links="[^](#table-of-contents)"  # Up to table of contents
         
         if [ $i -gt 0 ]; then
@@ -116,7 +114,7 @@ format_timestamp() {
             nav_links="$nav_links >"
         fi
         
-        echo "$nav_links"
+        echo "## Request $((i+1)) $nav_links"
         echo ""
         
         # Extract user message
