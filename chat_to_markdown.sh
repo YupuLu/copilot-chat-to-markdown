@@ -19,7 +19,6 @@ if [ $# -ne 2 ]; then
     echo "Convert a Copilot chat log JSON file to markdown format"
     echo ""
     echo "Examples:"
-    echo "  $0 chat.json chat.md"
     echo "  $0 input.json output.md"
     exit 1
 fi

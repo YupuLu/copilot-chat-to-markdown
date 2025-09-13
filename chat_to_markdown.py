@@ -173,7 +173,6 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python chat_to_markdown.py chat.json chat.md
   python chat_to_markdown.py input.json output.md
         """
     )
