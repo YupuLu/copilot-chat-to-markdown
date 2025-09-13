@@ -851,13 +851,13 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
         response = request.get('response', [])
         result = request.get('result', {})
         
-        # Check for error details first
+        # Check for error details
         error_details = None
         if isinstance(result, dict):
             error_details = result.get('errorDetails', {})
         
-        # Show error message if request failed
-        if error_details and isinstance(error_details, dict) and error_details.get('message'):
+        # Process assistant responses (can have both response content and errors)
+        if response or (error_details and isinstance(error_details, dict) and error_details.get('message')):
             md_lines.append("### Assistant")
             md_lines.append("")
             
@@ -870,93 +870,83 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                     if references_formatted.strip():
                         md_lines.append(references_formatted)
             
-            # Format and add the error message
-            error_message = format_error_message(error_details)
-            if error_message.strip():
-                md_lines.append(error_message)
-                md_lines.append("")
-        
-        elif response:
-            md_lines.append("### Assistant")
-            md_lines.append("")
-            
-            # Add references if they exist
-            variable_data = request.get('variableData', {})
-            if isinstance(variable_data, dict):
-                variables = variable_data.get('variables', [])
-                if variables:
-                    references_formatted = format_references(variables)
-                    if references_formatted.strip():
-                        md_lines.append(references_formatted)
-            
-            # First try to get consolidated response from toolCallRounds (like bash script)
-            consolidated_response = ""
-            if isinstance(result, dict):
-                metadata = result.get('metadata', {})
-                if isinstance(metadata, dict):
-                    tool_call_rounds = metadata.get('toolCallRounds', [])
-                    if isinstance(tool_call_rounds, list):
-                        tool_responses = []
-                        all_tool_calls = []
-                        
-                        for round_data in tool_call_rounds:
-                            if isinstance(round_data, dict):
-                                # Skip collecting tool calls - we'll get them from the detailed response parts
-                                # Collect response from this round
-                                if 'response' in round_data:
-                                    round_response = round_data['response']
-                                    if isinstance(round_response, str) and round_response.strip():
-                                        tool_responses.append(round_response.strip())
-                        
-                        # Don't format tool calls here - they'll be handled by the detailed response processing
-                        
-                        # Add consolidated responses
-                        if tool_responses:
-                            consolidated_response = '\n'.join(tool_responses)
-            
-            # If no consolidated response available, fall back to incremental response parts
-            if not consolidated_response.strip():
+            # Process normal response content first (if any)
+            if response:
+                # First try to get consolidated response from toolCallRounds (like bash script)
+                consolidated_response = ""
+                if isinstance(result, dict):
+                    metadata = result.get('metadata', {})
+                    if isinstance(metadata, dict):
+                        tool_call_rounds = metadata.get('toolCallRounds', [])
+                        if isinstance(tool_call_rounds, list):
+                            tool_responses = []
+                            all_tool_calls = []
+                            
+                            for round_data in tool_call_rounds:
+                                if isinstance(round_data, dict):
+                                    # Skip collecting tool calls - we'll get them from the detailed response parts
+                                    # Collect response from this round
+                                    if 'response' in round_data:
+                                        round_response = round_data['response']
+                                        if isinstance(round_response, str) and round_response.strip():
+                                            tool_responses.append(round_response.strip())
+                            
+                            # Don't format tool calls here - they'll be handled by the detailed response processing
+                            
+                            # Add consolidated responses
+                            if tool_responses:
+                                consolidated_response = '\n'.join(tool_responses)
+                
+                # If no consolidated response available, fall back to incremental response parts
+                if not consolidated_response.strip():
+                    response_parts = []
+                    for part in response:
+                        part_text = extract_text_from_response_part(part)
+                        if part_text and part_text.strip():
+                            response_parts.append(part_text)
+                    
+                    if response_parts:
+                        consolidated_response = '\n'.join(response_parts)
+                
+                # Always process the incremental response parts for tool details, even if we have consolidated response
                 response_parts = []
                 for part in response:
                     part_text = extract_text_from_response_part(part)
                     if part_text and part_text.strip():
                         response_parts.append(part_text)
                 
-                if response_parts:
-                    consolidated_response = '\n'.join(response_parts)
-            
-            # Always process the incremental response parts for tool details, even if we have consolidated response
-            response_parts = []
-            for part in response:
-                part_text = extract_text_from_response_part(part)
-                if part_text and part_text.strip():
-                    response_parts.append(part_text)
-            
-            # Extract tool call results for this request
-            tool_call_results = {}
-            tool_call_rounds = []
-            if isinstance(result, dict):
-                metadata = result.get('metadata', {})
-                if isinstance(metadata, dict):
-                    tool_call_results = metadata.get('toolCallResults', {})
-                    tool_call_rounds = metadata.get('toolCallRounds', [])
-            
-            if response_parts:
-                incremental_response = '\n'.join(response_parts)
-                # Process special markers for tool invocations with tool call results
-                incremental_response = process_special_markers(incremental_response, tool_call_results, tool_call_rounds)
+                # Extract tool call results for this request
+                tool_call_results = {}
+                tool_call_rounds = []
+                if isinstance(result, dict):
+                    metadata = result.get('metadata', {})
+                    if isinstance(metadata, dict):
+                        tool_call_results = metadata.get('toolCallResults', {})
+                        tool_call_rounds = metadata.get('toolCallRounds', [])
                 
-                # Use the incremental response if it has more detail, otherwise use consolidated
-                if ('__TOOL_INVOCATION__' in '\n'.join(response_parts) or 
-                    '__TEXT_EDIT_GROUP__' in '\n'.join(response_parts) or 
-                    not consolidated_response.strip()):
-                    consolidated_response = incremental_response
+                if response_parts:
+                    incremental_response = '\n'.join(response_parts)
+                    # Process special markers for tool invocations with tool call results
+                    incremental_response = process_special_markers(incremental_response, tool_call_results, tool_call_rounds)
+                    
+                    # Use the incremental response if it has more detail, otherwise use consolidated
+                    if ('__TOOL_INVOCATION__' in '\n'.join(response_parts) or 
+                        '__TEXT_EDIT_GROUP__' in '\n'.join(response_parts) or 
+                        not consolidated_response.strip()):
+                        consolidated_response = incremental_response
+                
+                # Use whichever response has more meaningful content
+                if consolidated_response.strip():
+                    cleaned_response = format_message_text(consolidated_response)
+                    if cleaned_response.strip():
+                        md_lines.append(cleaned_response)
+                        md_lines.append("")
             
-            # Use whichever response has more meaningful content
-            if consolidated_response.strip():
-                cleaned_response = format_message_text(consolidated_response)
-                if cleaned_response.strip():
-                    md_lines.append(cleaned_response)
+            # Add error message if request failed (after any response content)
+            if error_details and isinstance(error_details, dict) and error_details.get('message'):
+                error_message = format_error_message(error_details)
+                if error_message.strip():
+                    md_lines.append(error_message)
                     md_lines.append("")
         
         # Add timestamp and metadata if available
