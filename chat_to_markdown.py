@@ -198,23 +198,44 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
             md_lines.append("### Assistant")
             md_lines.append("")
             
-            response_parts = []
-            for part in response:
-                part_text = extract_text_from_response_part(part)
-                if part_text and part_text.strip():
-                    response_parts.append(part_text)
+            # First try to get consolidated response from toolCallRounds (like bash script)
+            consolidated_response = ""
+            result = request.get('result', {})
+            if isinstance(result, dict):
+                metadata = result.get('metadata', {})
+                if isinstance(metadata, dict):
+                    tool_call_rounds = metadata.get('toolCallRounds', [])
+                    if isinstance(tool_call_rounds, list):
+                        tool_responses = []
+                        for round_data in tool_call_rounds:
+                            if isinstance(round_data, dict) and 'response' in round_data:
+                                round_response = round_data['response']
+                                if isinstance(round_response, str) and round_response.strip():
+                                    tool_responses.append(round_response.strip())
+                        if tool_responses:
+                            consolidated_response = '\n'.join(tool_responses)
             
-            if response_parts:
-                # Join parts and clean up excessive whitespace
-                full_response = '\n'.join(response_parts)
-                # Remove any leftover empty lines or malformed content
-                cleaned_response = format_message_text(full_response)
-                if cleaned_response.strip():  # Only add if there's actual content
+            # If no consolidated response available, fall back to incremental response parts
+            if not consolidated_response.strip():
+                response_parts = []
+                for part in response:
+                    part_text = extract_text_from_response_part(part)
+                    if part_text and part_text.strip():
+                        response_parts.append(part_text)
+                
+                if response_parts:
+                    consolidated_response = '\n'.join(response_parts)
+            
+            # Use whichever response has more meaningful content
+            if consolidated_response.strip():
+                cleaned_response = format_message_text(consolidated_response)
+                if cleaned_response.strip():
                     md_lines.append(cleaned_response)
                     md_lines.append("")
         
         # Add timestamp and metadata if available
-        result = request.get('result', {})
+        if not result:  # Only get result if not already retrieved above
+            result = request.get('result', {})
         if isinstance(result, dict):
             timings = result.get('timings', {})
             if 'totalElapsed' in timings:
