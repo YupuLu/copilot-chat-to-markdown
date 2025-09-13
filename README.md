@@ -26,6 +26,7 @@ Convert GitHub Copilot chat logs from VS Code into readable Markdown format. Thi
   - **macOS**: `brew install jq`
   - **Ubuntu/Debian**: `sudo apt-get install jq`
   - **RHEL/CentOS**: `sudo yum install jq`
+  - **Windows**: `choco install jq` (requires [Chocolatey](https://chocolatey.org/), a Windows package manager)
 
 ## Usage
 
@@ -115,6 +116,8 @@ If you encounter jq errors:
 # Install jq if missing
 brew install jq  # macOS
 sudo apt-get install jq  # Ubuntu/Debian
+sudo yum install jq  # RHEL/CentOS
+choco install jq  # Windows (requires Chocolatey)
 
 # Check if JSON is valid
 jq empty your_chat.json
