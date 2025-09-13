@@ -396,11 +396,26 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                     if first_line and last_line:
                         combined_content.append(f"# Lines {first_line}-{last_line}:")
                     
-                    # Add all content from consecutive edits without individual line markers
+                    # Combine all consecutive edits into a single coherent text block
+                    consecutive_text_parts = []
                     for _, cons_edit in consecutive_edits:
-                        cons_text = cons_edit.get('text', '').rstrip()
-                        if cons_text:
-                            combined_content.append(cons_text)
+                        cons_text = cons_edit.get('text', '')
+                        if cons_text is not None:
+                            # Strip only leading/trailing whitespace, but preserve internal structure
+                            cons_text = cons_text.strip()
+                            consecutive_text_parts.append(cons_text)  # Include even empty strings to preserve spacing
+                    
+                    # Join and clean up the consecutive parts
+                    if consecutive_text_parts:
+                        combined_consecutive = '\n'.join(consecutive_text_parts)
+                        # Remove excessive consecutive blank lines but preserve intentional spacing
+                        import re
+                        # Replace multiple consecutive blank lines with maximum of 2 blank lines
+                        combined_consecutive = re.sub(r'\n\s*\n\s*\n+', '\n\n', combined_consecutive)
+                        # Remove any leading/trailing blank lines from the combined content
+                        combined_consecutive = combined_consecutive.strip()
+                        if combined_consecutive:
+                            combined_content.append(combined_consecutive)
                 else:
                     # Single edit - show line number
                     if edit_range:

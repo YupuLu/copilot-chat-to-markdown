@@ -625,409 +625,207 @@ I'll create the BRAINSTORM.md file and update the PRD with all our decisions.
 ````markdown
 # Lines 1-255:
 # Repo Organizer - Design Brainstorm Session
-
 **Date:** September 12, 2025
-
 This document captures the complete brainstorming conversation that led to the final PRD decisions for the Repo Organizer project.
-
 ---
-
 ## Initial User Request
-
 User wanted to create a Repo Organizer with these key details:
-
 - Logs in via GitHub auth
-
 - Gets list of own repos (created and forked) plus starred repos
-
 - Organize them into nested folders with metadata and annotation
-
 - Homepage provides clean table view with expandable nesting
-
 - Metadata includes repo type, visibility, stars, forks, dates, etc.
-
 - Notes column and ability to add custom columns
-
 - Single-repo view page for detailed editing
-
 - No database; metadata stored in YAML file in "repo-organizer-metadata" repo
-
 - Auto-creates metadata repo on first login with user explanation
-
 User requested help with:
-
 1. Fill PRD template placeholders
-
 2. Validate tech stack: Flask, Bootstrap, jQuery, SQLite, fly.io
-
 3. Brainstorm key decisions
-
 4. Ensure appropriate scope for v1
-
 ## Tech Stack Analysis & Recommendations
-
 **Assistant's Analysis:**
-
 - ✅ Keep: Flask + jQuery + Bootstrap (good for interactivity without complexity)
-
 - ✅ Keep: fly.io (great for personal projects)
-
 - ❌ Remove: SQLite (not needed - using YAML in GitHub repo)
-
 **Key Design Benefits Identified:**
-
 - YAML in GitHub repo = version controlled notes
-
 - No database maintenance required
-
 - Portable across deployments
-
 - Can be edited directly if needed
-
 ## Key Questions & User Responses
-
 **Assistant asked about:**
-
 1. **Nested folder depth**: What's the maximum?
-
-   - **User:** 5 levels max (most people will use 1-3)
-
+- **User:** 5 levels max (most people will use 1-3)
 2. **Custom fields**: Text-only or typed fields?
-
-   - **User:** Typed fields, but no binary files/images (links OK)
-
+- **User:** Typed fields, but no binary files/images (links OK)
 3. **GitHub API rate limits**: Caching strategy?
-
-   - **User:** Browser cache
-
+- **User:** Browser cache
 4. **Metadata repo naming**: Fixed or configurable?
-
-   - **User:** Must be "repo-organizer-metadata" - if configurable, we'd need to store that fact somewhere else!
-
+- **User:** Must be "repo-organizer-metadata" - if configurable, we'd need to store that fact somewhere else!
 5. **Table interaction**: How to organize repos?
-
-   - **User:** Both drag-and-drop AND context menus/buttons
-
+- **User:** Both drag-and-drop AND context menus/buttons
 ## Metadata Repository Structure Brainstorm
-
 **Assistant presented two options:**
-
 ### Option A: Separate files per repo
-
 ```
-
 repo-organizer-metadata/
-
 ├── README.md
-
 ├── schema.yml
-
 ├── folders.yml
-
 └── repos/
-
-    ├── own/
-
-    └── starred/
-
+├── own/
+└── starred/
 ```
-
 ### Option B: Consolidated structure
-
 ```
-
 repo-organizer-metadata/
-
 ├── README.md
-
 ├── schema.yml
-
 ├── organization.yml
-
 └── archived/
-
 ```
-
 **Assistant recommended Option A** for better conflict resolution, scalability, and git-friendliness.
-
 **User then suggested:** Should we use physical folders in the metadata repo instead of folders.yml mapping?
-
 **Assistant analyzed physical folder approach:**
-
 ```
-
 repo-organizer-metadata/
-
 ├── README.md
-
 ├── schema.yml
-
 ├── Personal Projects/
-
 │   ├── _folder.yml
-
 │   ├── Web Apps/
-
 │   │   ├── _folder.yml
-
 │   │   ├── peckjon-repo-organizer.yml
-
 │   │   └── peckjon-my-website.yml
-
 │   └── CLI Tools/
-
 └── Learning/
-
-    ├── _folder.yml
-
-    ├── torvalds-linux.yml
-
-    └── microsoft-vscode.yml
-
+├── _folder.yml
+├── torvalds-linux.yml
+└── microsoft-vscode.yml
 ```
-
 **Benefits identified:**
-
 - More intuitive file organization
-
 - Eliminates folders.yml mapping complexity
-
 - Natural mixing of own/starred repos
-
 - Easy to browse in GitHub web interface
-
 - Drag-and-drop = file moves
-
 ## File Structure Details Designed
-
 **schema.yml example:**
-
 ```yaml
-
 version: "1.0"
-
 columns:
-
-  priority:
-
-    type: "integer"
-
-    min: 1
-
-    max: 5
-
-    default: 3
-
-  technology_stack:
-
-    type: "array"
-
-    items: "string"
-
-  last_reviewed:
-
-    type: "date"
-
-    format: "YYYY-MM-DD"
-
-  notes:
-
-    type: "text"
-
-    multiline: true
-
-  custom_url:
-
-    type: "url"
-
-    validation: "^https?://"
-
+priority:
+type: "integer"
+min: 1
+max: 5
+default: 3
+technology_stack:
+type: "array"
+items: "string"
+last_reviewed:
+type: "date"
+format: "YYYY-MM-DD"
+notes:
+type: "text"
+multiline: true
+custom_url:
+type: "url"
+validation: "^https?://"
 ```
-
 **_folder.yml example:**
-
 ```yaml
-
 name: "Web Apps"
-
 description: "Active web application projects"
-
 color: "#3498db"
-
 created: "2025-09-12"
-
 ```
-
 **Individual repo file example:**
-
 ```yaml
-
 type: "own"
-
 folder_id: "active.webapps"
-
 fields:
-
-  priority: 5
-
-  technology_stack: ["python", "flask", "javascript"]
-
-  notes: "Personal project for GitHub repo organization"
-
-  last_reviewed: "2025-09-12"
-
+priority: 5
+technology_stack: ["python", "flask", "javascript"]
+notes: "Personal project for GitHub repo organization"
+last_reviewed: "2025-09-12"
 ```
-
 ## Update Strategy Discussion
-
 **Assistant presented three options:**
-
 1. Immediate save (every change commits)
-
 2. Session-based save (save button or navigate away)
-
 3. Auto-save with throttling (30 seconds of inactivity)
-
 **User chose:** Session-based save with auto-save backup to localStorage
-
 ## Data Conflict Resolution Strategy
-
 **Assistant designed resolution approach:**
-
 ```python
-
 def resolve_field_conflicts(repo_data, schema):
-
-    resolved = {}
-
-    errors = []
-
-    for field_name, value in repo_data.get('fields', {}).items():
-
-        schema_field = find_schema_field_ignore_case(field_name, schema)
-
-        if not schema_field:
-
-            errors.append(f"Unknown field '{field_name}' treated as text")
-
-            resolved[field_name.lower()] = str(value)
-
-            continue
-
-        try:
-
-            resolved[schema_field['canonical_name']] = coerce_to_type(value, schema_field)
-
-        except ValidationError as e:
-
-            errors.append(f"Field '{field_name}': {e.message}, using default")
-
-            resolved[schema_field['canonical_name']] = schema_field.get('default')
-
-    return resolved, errors
-
+resolved = {}
+errors = []
+for field_name, value in repo_data.get('fields', {}).items():
+schema_field = find_schema_field_ignore_case(field_name, schema)
+if not schema_field:
+errors.append(f"Unknown field '{field_name}' treated as text")
+resolved[field_name.lower()] = str(value)
+continue
+try:
+resolved[schema_field['canonical_name']] = coerce_to_type(value, schema_field)
+except ValidationError as e:
+errors.append(f"Field '{field_name}': {e.message}, using default")
+resolved[schema_field['canonical_name']] = schema_field.get('default')
+return resolved, errors
 ```
-
 ## Cleanup Strategy
-
 **Assistant proposed:** Keep manifest in folders.yml, flag orphaned files, user decides to delete/reassign, auto-cleanup after 30 days.
-
 **User feedback:**
-
 - Move to "archived" right away (no delay)
-
 - Make orphaned items feel natural with separate "Archived" view
-
 - Use "unlink/disconnect" terminology, not "delete"
-
 - When user "unlinks", make clear they're removing notes/custom fields about repo
-
 **User added:** For field deletion, warn user if non-empty values exist: "This will permanently delete N nonempty values ([list examples]...) are you sure?"
-
 ## Final Clarifications Round
-
 **User's final decisions:**
-
 - ✅ Physical folders approach
-
 - **Auto-save strategy:** Every 30 seconds IF changes detected, PLUS immediate auto-save for structural changes (folder nesting, field names, etc.)
-
 - **Validation on folder moves:** Yes, validate repo metadata compatibility
-
 - **Bulk operations:** File under "future updates" section
-
 ## Final Architecture Summary
-
 **Tech Stack:**
-
 - Frontend: Flask + Bootstrap 5 + jQuery
-
 - Backend: Flask (Python)
-
 - Storage: YAML files in GitHub repo (NO database)
-
 - Authentication: GitHub OAuth
-
 - Deployment: fly.io
-
 - Caching: Browser cache for GitHub API responses
-
 **Data Management:**
-
 - Field names: Case-sensitive in schema, case-insensitive (lowercase) in repo files
-
 - Empty fields: Omitted from YAML, shown as empty in UI
-
 - Field types: string, integer, float, boolean, date, array, url, enum, text
-
 - Conflict resolution: Auto-coerce types, fallback to defaults, log errors
-
 **Save Strategy:**
-
 - Immediate: Structural changes
-
 - 30-second auto-save: Field value changes
-
 - Navigation save: On page navigation/close
-
 - Local backup: localStorage for unsaved changes
-
 **Data Cleanup:**
-
 - Orphaned files → "Archived" folder immediately
-
 - "Unlink/Disconnect" terminology
-
 - Field deletion warnings with examples
-
 - Separate archived view
-
 **UI Features:**
-
 - Single expandable table with nested folders
-
 - Both drag-and-drop AND context menus
-
 - Custom typed columns
-
 - Built-in metadata (type, visibility, stars, forks, dates)
-
 - Single repo detail view
-
 **Future Considerations (V2+):**
-
 - Bulk operations
-
 - Advanced filtering/search
-
 - Export functionality
-
 - Sharing organization schemes
-
 - Complex field types
-
 ---
-
 This brainstorming session resulted in a comprehensive architecture that balances simplicity with powerful organization capabilities, leveraging GitHub's infrastructure for storage while providing a rich user interface for repo management.
 ````
 
