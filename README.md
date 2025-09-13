@@ -10,6 +10,7 @@ Convert GitHub Copilot chat logs from VS Code into readable Markdown format. Thi
 - ✅ **Progress indicators**: Includes progress messages like "✔️ Optimizing tool selection..."
 - ✅ **Clean output**: Filters out internal VS Code metadata while preserving conversation flow
 - ✅ **Response timing**: Includes response time information for performance insights
+- ✅ **Model information**: Shows which Copilot model was used for each response
 - ✅ **Multiple requests**: Handles complete chat sessions with multiple back-and-forth exchanges
 - ✅ **Table of Contents**: Auto-generated index with clickable links to each request
 - ✅ **Navigation links**: Each request includes ^ (index), < (previous), > (next) navigation
