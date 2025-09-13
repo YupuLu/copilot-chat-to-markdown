@@ -17,8 +17,11 @@ def extract_text_from_response_part(part: Dict[str, Any]) -> str:
         # Skip internal VS Code/Copilot metadata
         if 'kind' in part:
             kind = part['kind']
-            # Skip inline references and other VS Code internal objects
-            if kind in ['inlineReference', 'undoStop', 'codeblockUri', 'textEditGroup']:
+            # Handle textEditGroup - extract edit content for tool invocations
+            if kind == 'textEditGroup':
+                return f"__TEXT_EDIT_GROUP__{json.dumps(part)}__TEXT_EDIT_GROUP__"
+            # Skip other internal VS Code objects
+            if kind in ['inlineReference', 'undoStop', 'codeblockUri']:
                 return ""
             # Handle tool invocation messages - return special markers for processing
             if kind == 'toolInvocationSerialized':
@@ -44,6 +47,9 @@ def extract_text_from_response_part(part: Dict[str, Any]) -> str:
             value = part['value']
             # Skip if the value is just a raw object representation
             if isinstance(value, str) and ('{' in value and '$mid' in value):
+                return ""
+            # Skip empty code block artifacts from tool invocations
+            if isinstance(value, str) and value.strip() == "```":
                 return ""
             return value
         elif 'content' in part:
@@ -184,6 +190,12 @@ def format_references(variables: List[Dict[str, Any]]) -> str:
 def format_tool_invocation_details(tool_data: Dict[str, Any]) -> str:
     """Format tool invocation with input/output in expandable format."""
     past_tense = tool_data.get('pastTenseMessage', {}).get('value', 'Ran tool')
+    invocation_msg = tool_data.get('invocationMessage', '')
+    if isinstance(invocation_msg, dict):
+        invocation_msg = invocation_msg.get('value', 'Ran tool')
+    if not invocation_msg:
+        invocation_msg = past_tense
+    
     result_details = tool_data.get('resultDetails', {})
     
     # Get input and output data
@@ -205,7 +217,7 @@ def format_tool_invocation_details(tool_data: Dict[str, Any]) -> str:
         # Build the details block
         lines = []
         lines.append(f"<details>")
-        lines.append(f"  <summary>{past_tense}</summary>")
+        lines.append(f"  <summary>{invocation_msg}</summary>")
         lines.append(f"  <p>Input</p>")
         lines.append(f"")
         lines.append(f"```json")
@@ -229,7 +241,67 @@ def format_tool_invocation_details(tool_data: Dict[str, Any]) -> str:
         
     except:
         # Fallback for malformed input
-        return f"<details>\n  <summary>{past_tense}</summary>\n  <p>Completed with input: {input_data}</p>\n</details>\n\n"
+        return f"<details>\n  <summary>{invocation_msg}</summary>\n  <p>Completed with input: {input_data}</p>\n</details>\n\n"
+
+
+def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
+    """Format textEditGroup data showing the actual file changes."""
+    try:
+        uri = edit_data.get('uri', {})
+        file_path = uri.get('fsPath', '')
+        if not file_path:
+            file_path = uri.get('path', 'Unknown file')
+        
+        # Extract just the filename for display
+        import os
+        file_name = os.path.basename(file_path) if file_path else 'Unknown file'
+        
+        edits = edit_data.get('edits', [])
+        if not edits:
+            return ""
+        
+        # Build the details block
+        lines = []
+        lines.append(f"<details>")
+        lines.append(f"  <summary>🛠️ File Edit: {file_name}</summary>")
+        
+        # Process each edit
+        for edit_group in edits:
+            if not edit_group:
+                continue
+            for edit in edit_group:
+                if not isinstance(edit, dict):
+                    continue
+                
+                text_content = edit.get('text', '')
+                edit_range = edit.get('range', {})
+                
+                if not text_content:
+                    continue
+                
+                # Show the range if available
+                if edit_range:
+                    start_line = edit_range.get('startLineNumber', '')
+                    end_line = edit_range.get('endLineNumber', '')
+                    if start_line and end_line:
+                        lines.append(f"  <p><strong>Modified lines {start_line}-{end_line}:</strong></p>")
+                        lines.append(f"")
+                
+                # Determine the language for syntax highlighting
+                file_ext = os.path.splitext(file_name)[1] if file_name else ''
+                lang = 'markdown' if file_ext == '.md' else ('python' if file_ext == '.py' else ('json' if file_ext == '.json' else ''))
+                
+                lines.append(f"```{lang}")
+                lines.append(text_content)
+                lines.append(f"```")
+                lines.append(f"")
+        
+        lines.append(f"</details>")
+        
+        return '\n'.join(lines) + '\n\n'
+        
+    except Exception as e:
+        return ""
 
 def format_progress_task(task_data: Dict[str, Any]) -> str:
     """Format progress task with checkmark."""
@@ -243,6 +315,16 @@ def format_progress_task(task_data: Dict[str, Any]) -> str:
 def process_special_markers(text: str) -> str:
     """Process special markers for tool invocations and progress tasks."""
     import re
+    
+    # Process text edit group markers
+    def replace_text_edit_group(match):
+        try:
+            edit_data = json.loads(match.group(1))
+            return format_text_edit_group(edit_data)
+        except:
+            return ""
+    
+    text = re.sub(r'__TEXT_EDIT_GROUP__(.*?)__TEXT_EDIT_GROUP__', replace_text_edit_group, text, flags=re.DOTALL)
     
     # Process tool invocation markers
     def replace_tool_invocation(match):
@@ -476,7 +558,9 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                 incremental_response = process_special_markers(incremental_response)
                 
                 # Use the incremental response if it has more detail, otherwise use consolidated
-                if '__TOOL_INVOCATION__' in '\n'.join(response_parts) or not consolidated_response.strip():
+                if ('__TOOL_INVOCATION__' in '\n'.join(response_parts) or 
+                    '__TEXT_EDIT_GROUP__' in '\n'.join(response_parts) or 
+                    not consolidated_response.strip()):
                     consolidated_response = incremental_response
             
             # Use whichever response has more meaningful content
