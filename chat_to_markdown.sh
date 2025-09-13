@@ -3,8 +3,6 @@
 # Convert a Copilot chat log JSON file to markdown format
 # Usage: ./chat_to_markdown.sh input.json output.md
 
-set -e
-
 # Check if jq is installed
 if ! command -v jq &> /dev/null; then
     echo "Error: jq is required but not installed. Please install jq first." >&2
@@ -110,13 +108,13 @@ format_timestamp() {
             ) | 
             map(select(. != null and . != "" and . != "*")) | 
             join("\n")
-        ' "$INPUT_FILE" 2>/dev/null | sed '/^$/d'
+        ' "$INPUT_FILE" 2>/dev/null
         
         echo ""
         
         # Add response time if available
         elapsed_ms=$(jq -r --argjson idx "$i" '.requests[$idx].result.timings.totalElapsed // null' "$INPUT_FILE")
-        if [ -n "$elapsed_ms" ] && [ "$elapsed_ms" != "null" ]; then
+        if [ -n "$elapsed_ms" ] && [ "$elapsed_ms" != "null" ] && [[ "$elapsed_ms" =~ ^[0-9]+$ ]]; then
             elapsed_s=$(echo "scale=2; $elapsed_ms / 1000" | bc -l 2>/dev/null || echo "$elapsed_ms")
             echo "*Response time: ${elapsed_s} seconds*"
             echo ""
