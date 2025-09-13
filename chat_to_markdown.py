@@ -301,9 +301,16 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                         lines.append(f"  <p><strong>Modified lines {start_line}-{end_line}:</strong></p>")
                     lines.append(f"")
             
-            lines.append(f"```{lang}")
-            lines.append(text_content.rstrip())
-            lines.append(f"```")
+            # Check if content contains triple backticks
+            if '```' in text_content:
+                # Use 4 backticks to safely contain the 3-backtick content
+                lines.append(f"````{lang}")
+                lines.append(text_content.rstrip())
+                lines.append(f"````")
+            else:
+                lines.append(f"```{lang}")
+                lines.append(text_content.rstrip())
+                lines.append(f"```")
         
         # If there are multiple edits, try to consolidate them intelligently
         elif len(all_edits) <= 5:  # Show up to 5 edits separately
@@ -324,27 +331,63 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                             lines.append(f"  <p><strong>Lines {start_line}-{end_line}:</strong></p>")
                         lines.append(f"")
                 
-                lines.append(f"```{lang}")
-                lines.append(text_content.rstrip())
-                lines.append(f"```")
+                # Check if content contains triple backticks
+                if '```' in text_content:
+                    # Use 4 backticks to safely contain the 3-backtick content
+                    lines.append(f"````{lang}")
+                    lines.append(text_content.rstrip())
+                    lines.append(f"````")
+                else:
+                    lines.append(f"```{lang}")
+                    lines.append(text_content.rstrip())
+                    lines.append(f"```")
         
-        # If there are many edits, just show a summary
+        # If there are many edits, group them into a single consolidated block
         else:
             lines.append(f"  <p><strong>Multiple file changes ({len(all_edits)} edits)</strong></p>")
             lines.append(f"")
             
-            # Show the first substantial edit as an example
-            if all_edits:
-                first_edit = all_edits[0]
-                text_content = first_edit.get('text', '')
-                if len(text_content) > 200:
-                    text_content = text_content[:200] + "..."
+            # Combine all edits into one code block
+            combined_content = []
+            has_code_blocks = False
+            
+            for i, edit in enumerate(all_edits):
+                text_content = edit.get('text', '')
+                edit_range = edit.get('range', {})
                 
+                # Check if any content has code blocks
+                if '```' in text_content:
+                    has_code_blocks = True
+                
+                # Add a comment/separator for each edit
+                if edit_range:
+                    start_line = edit_range.get('startLineNumber', '')
+                    end_line = edit_range.get('endLineNumber', '')
+                    if start_line and end_line:
+                        if start_line == end_line:
+                            combined_content.append(f"# Line {start_line}:")
+                        else:
+                            combined_content.append(f"# Lines {start_line}-{end_line}:")
+                    else:
+                        combined_content.append(f"# Edit {i+1}:")
+                else:
+                    combined_content.append(f"# Edit {i+1}:")
+                
+                combined_content.append(text_content.rstrip())
+                
+                # Add separator between edits (except for the last one)
+                if i < len(all_edits) - 1:
+                    combined_content.append("")  # Blank line separator
+            
+            # Use 4 backticks if content has code blocks, otherwise 3
+            if has_code_blocks:
+                lines.append(f"````{lang}")
+                lines.append('\n'.join(combined_content))
+                lines.append(f"````")
+            else:
                 lines.append(f"```{lang}")
-                lines.append(text_content.rstrip())
+                lines.append('\n'.join(combined_content))
                 lines.append(f"```")
-                lines.append(f"")
-                lines.append(f"  <p><em>... and {len(all_edits)-1} more edits</em></p>")
         
         lines.append(f"")
         lines.append(f"</details>")

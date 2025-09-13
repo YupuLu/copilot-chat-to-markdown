@@ -620,1743 +620,820 @@ I'll create the BRAINSTORM.md file and update the PRD with all our decisions.
 
 <details>
   <summary>🛠️ File Edit: BRAINSTORM.md</summary>
-  <p><strong>Modified lines 1-1:</strong></p>
+  <p><strong>Multiple file changes (203 edits)</strong></p>
 
-```markdown
+````markdown
+# Line 1:
 # Repo Organizer - Design Brainstorm Session
-```
 
-  <p><strong>Modified lines 2-2:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 3-3:</strong></p>
-
-```markdown
+# Line 3:
 
 **Date:** September 12, 2025
-```
 
-  <p><strong>Modified lines 4-4:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 5-5:</strong></p>
-
-```markdown
+# Line 5:
 
 This document captures the complete brainstorming conversation that led to the final PRD decisions for the Repo Organizer project.
-```
 
-  <p><strong>Modified lines 6-6:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 7-7:</strong></p>
-
-```markdown
+# Line 7:
 
 ---
-```
 
-  <p><strong>Modified lines 8-8:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 9-9:</strong></p>
-
-```markdown
+# Line 9:
 
 ## Initial User Request
-```
 
-  <p><strong>Modified lines 10-10:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 11-11:</strong></p>
-
-```markdown
+# Line 11:
 
 User wanted to create a Repo Organizer with these key details:
-```
 
-  <p><strong>Modified lines 12-12:</strong></p>
-
-```markdown
+# Line 12:
 
 - Logs in via GitHub auth
-```
 
-  <p><strong>Modified lines 13-13:</strong></p>
-
-```markdown
+# Line 13:
 
 - Gets list of own repos (created and forked) plus starred repos
-```
 
-  <p><strong>Modified lines 14-14:</strong></p>
-
-```markdown
+# Line 14:
 
 - Organize them into nested folders with metadata and annotation
-```
 
-  <p><strong>Modified lines 15-15:</strong></p>
-
-```markdown
+# Line 15:
 
 - Homepage provides clean table view with expandable nesting
-```
 
-  <p><strong>Modified lines 16-16:</strong></p>
-
-```markdown
+# Line 16:
 
 - Metadata includes repo type, visibility, stars, forks, dates, etc.
-```
 
-  <p><strong>Modified lines 17-17:</strong></p>
-
-```markdown
+# Line 17:
 
 - Notes column and ability to add custom columns
-```
 
-  <p><strong>Modified lines 18-18:</strong></p>
-
-```markdown
+# Line 18:
 
 - Single-repo view page for detailed editing
-```
 
-  <p><strong>Modified lines 19-19:</strong></p>
-
-```markdown
+# Line 19:
 
 - No database; metadata stored in YAML file in "repo-organizer-metadata" repo
-```
 
-  <p><strong>Modified lines 20-20:</strong></p>
-
-```markdown
+# Line 20:
 
 - Auto-creates metadata repo on first login with user explanation
-```
 
-  <p><strong>Modified lines 21-21:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 22-22:</strong></p>
-
-```markdown
+# Line 22:
 
 User requested help with:
-```
 
-  <p><strong>Modified lines 23-23:</strong></p>
-
-```markdown
+# Line 23:
 
 1. Fill PRD template placeholders
-```
 
-  <p><strong>Modified lines 24-24:</strong></p>
-
-```markdown
+# Line 24:
 
 2. Validate tech stack: Flask, Bootstrap, jQuery, SQLite, fly.io
-```
 
-  <p><strong>Modified lines 25-25:</strong></p>
-
-```markdown
+# Line 25:
 
 3. Brainstorm key decisions
-```
 
-  <p><strong>Modified lines 26-26:</strong></p>
-
-```markdown
+# Line 26:
 
 4. Ensure appropriate scope for v1
-```
 
-  <p><strong>Modified lines 27-27:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 28-28:</strong></p>
-
-```markdown
+# Line 28:
 
 ## Tech Stack Analysis & Recommendations
-```
 
-  <p><strong>Modified lines 29-29:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 30-30:</strong></p>
-
-```markdown
+# Line 30:
 
 **Assistant's Analysis:**
-```
 
-  <p><strong>Modified lines 31-31:</strong></p>
-
-```markdown
+# Line 31:
 
 - ✅ Keep: Flask + jQuery + Bootstrap (good for interactivity without complexity)
-```
 
-  <p><strong>Modified lines 32-32:</strong></p>
-
-```markdown
+# Line 32:
 
 - ✅ Keep: fly.io (great for personal projects)
-```
 
-  <p><strong>Modified lines 33-33:</strong></p>
-
-```markdown
+# Line 33:
 
 - ❌ Remove: SQLite (not needed - using YAML in GitHub repo)
-```
 
-  <p><strong>Modified lines 34-34:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 35-35:</strong></p>
-
-```markdown
+# Line 35:
 
 **Key Design Benefits Identified:**
-```
 
-  <p><strong>Modified lines 36-36:</strong></p>
-
-```markdown
+# Line 36:
 
 - YAML in GitHub repo = version controlled notes
-```
 
-  <p><strong>Modified lines 37-37:</strong></p>
-
-```markdown
+# Line 37:
 
 - No database maintenance required
-```
 
-  <p><strong>Modified lines 38-38:</strong></p>
-
-```markdown
+# Line 38:
 
 - Portable across deployments
-```
 
-  <p><strong>Modified lines 39-39:</strong></p>
-
-```markdown
+# Line 39:
 
 - Can be edited directly if needed
-```
 
-  <p><strong>Modified lines 40-40:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 41-41:</strong></p>
-
-```markdown
+# Line 41:
 
 ## Key Questions & User Responses
-```
 
-  <p><strong>Modified lines 42-42:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 43-43:</strong></p>
-
-```markdown
+# Line 43:
 
 **Assistant asked about:**
-```
 
-  <p><strong>Modified lines 44-44:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 45-45:</strong></p>
-
-```markdown
+# Line 45:
 
 1. **Nested folder depth**: What's the maximum?
-```
 
-  <p><strong>Modified lines 46-46:</strong></p>
-
-```markdown
+# Line 46:
 
    - **User:** 5 levels max (most people will use 1-3)
-```
 
-  <p><strong>Modified lines 47-47:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 48-48:</strong></p>
-
-```markdown
+# Line 48:
 
 2. **Custom fields**: Text-only or typed fields?
-```
 
-  <p><strong>Modified lines 49-49:</strong></p>
-
-```markdown
+# Line 49:
 
    - **User:** Typed fields, but no binary files/images (links OK)
-```
 
-  <p><strong>Modified lines 50-50:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 51-51:</strong></p>
-
-```markdown
+# Line 51:
 
 3. **GitHub API rate limits**: Caching strategy?
-```
 
-  <p><strong>Modified lines 52-52:</strong></p>
-
-```markdown
+# Line 52:
 
    - **User:** Browser cache
-```
 
-  <p><strong>Modified lines 53-53:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 54-54:</strong></p>
-
-```markdown
+# Line 54:
 
 4. **Metadata repo naming**: Fixed or configurable?
-```
 
-  <p><strong>Modified lines 55-55:</strong></p>
-
-```markdown
+# Line 55:
 
    - **User:** Must be "repo-organizer-metadata" - if configurable, we'd need to store that fact somewhere else!
-```
 
-  <p><strong>Modified lines 56-56:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 57-57:</strong></p>
-
-```markdown
+# Line 57:
 
 5. **Table interaction**: How to organize repos?
-```
 
-  <p><strong>Modified lines 58-58:</strong></p>
-
-```markdown
+# Line 58:
 
    - **User:** Both drag-and-drop AND context menus/buttons
-```
 
-  <p><strong>Modified lines 59-59:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 60-60:</strong></p>
-
-```markdown
+# Line 60:
 
 ## Metadata Repository Structure Brainstorm
-```
 
-  <p><strong>Modified lines 61-61:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 62-62:</strong></p>
-
-```markdown
+# Line 62:
 
 **Assistant presented two options:**
-```
 
-  <p><strong>Modified lines 63-63:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 64-64:</strong></p>
-
-```markdown
+# Line 64:
 
 ### Option A: Separate files per repo
-```
 
-  <p><strong>Modified lines 65-65:</strong></p>
-
-```markdown
+# Line 65:
 
 ```
-```
 
-  <p><strong>Modified lines 66-66:</strong></p>
-
-```markdown
+# Line 66:
 
 repo-organizer-metadata/
-```
 
-  <p><strong>Modified lines 67-67:</strong></p>
-
-```markdown
+# Line 67:
 
 ├── README.md
-```
 
-  <p><strong>Modified lines 68-68:</strong></p>
-
-```markdown
+# Line 68:
 
 ├── schema.yml
-```
 
-  <p><strong>Modified lines 69-69:</strong></p>
-
-```markdown
+# Line 69:
 
 ├── folders.yml
-```
 
-  <p><strong>Modified lines 70-70:</strong></p>
-
-```markdown
+# Line 70:
 
 └── repos/
-```
 
-  <p><strong>Modified lines 71-71:</strong></p>
-
-```markdown
+# Line 71:
 
     ├── own/
-```
 
-  <p><strong>Modified lines 72-72:</strong></p>
-
-```markdown
+# Line 72:
 
     └── starred/
-```
 
-  <p><strong>Modified lines 73-73:</strong></p>
-
-```markdown
-
-```
-```
-
-  <p><strong>Modified lines 74-74:</strong></p>
-
-```markdown
+# Line 73:
 
 ```
 
-  <p><strong>Modified lines 75-75:</strong></p>
-
-```markdown
+# Line 75:
 
 ### Option B: Consolidated structure
-```
 
-  <p><strong>Modified lines 76-76:</strong></p>
-
-```markdown
+# Line 76:
 
 ```
-```
 
-  <p><strong>Modified lines 77-77:</strong></p>
-
-```markdown
+# Line 77:
 
 repo-organizer-metadata/
-```
 
-  <p><strong>Modified lines 78-78:</strong></p>
-
-```markdown
+# Line 78:
 
 ├── README.md
-```
 
-  <p><strong>Modified lines 79-79:</strong></p>
-
-```markdown
+# Line 79:
 
 ├── schema.yml
-```
 
-  <p><strong>Modified lines 80-80:</strong></p>
-
-```markdown
+# Line 80:
 
 ├── organization.yml
-```
 
-  <p><strong>Modified lines 81-81:</strong></p>
-
-```markdown
+# Line 81:
 
 └── archived/
-```
 
-  <p><strong>Modified lines 82-82:</strong></p>
-
-```markdown
-
-```
-```
-
-  <p><strong>Modified lines 83-83:</strong></p>
-
-```markdown
+# Line 82:
 
 ```
 
-  <p><strong>Modified lines 84-84:</strong></p>
-
-```markdown
+# Line 84:
 
 **Assistant recommended Option A** for better conflict resolution, scalability, and git-friendliness.
-```
 
-  <p><strong>Modified lines 85-85:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 86-86:</strong></p>
-
-```markdown
+# Line 86:
 
 **User then suggested:** Should we use physical folders in the metadata repo instead of folders.yml mapping?
-```
 
-  <p><strong>Modified lines 87-87:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 88-88:</strong></p>
-
-```markdown
+# Line 88:
 
 **Assistant analyzed physical folder approach:**
-```
 
-  <p><strong>Modified lines 89-89:</strong></p>
-
-```markdown
+# Line 89:
 
 ```
-```
 
-  <p><strong>Modified lines 90-90:</strong></p>
-
-```markdown
+# Line 90:
 
 repo-organizer-metadata/
-```
 
-  <p><strong>Modified lines 91-91:</strong></p>
-
-```markdown
+# Line 91:
 
 ├── README.md
-```
 
-  <p><strong>Modified lines 92-92:</strong></p>
-
-```markdown
+# Line 92:
 
 ├── schema.yml
-```
 
-  <p><strong>Modified lines 93-93:</strong></p>
-
-```markdown
+# Line 93:
 
 ├── Personal Projects/
-```
 
-  <p><strong>Modified lines 94-94:</strong></p>
-
-```markdown
+# Line 94:
 
 │   ├── _folder.yml
-```
 
-  <p><strong>Modified lines 95-95:</strong></p>
-
-```markdown
+# Line 95:
 
 │   ├── Web Apps/
-```
 
-  <p><strong>Modified lines 96-96:</strong></p>
-
-```markdown
+# Line 96:
 
 │   │   ├── _folder.yml
-```
 
-  <p><strong>Modified lines 97-97:</strong></p>
-
-```markdown
+# Line 97:
 
 │   │   ├── peckjon-repo-organizer.yml
-```
 
-  <p><strong>Modified lines 98-98:</strong></p>
-
-```markdown
+# Line 98:
 
 │   │   └── peckjon-my-website.yml
-```
 
-  <p><strong>Modified lines 99-99:</strong></p>
-
-```markdown
+# Line 99:
 
 │   └── CLI Tools/
-```
 
-  <p><strong>Modified lines 100-100:</strong></p>
-
-```markdown
+# Line 100:
 
 └── Learning/
-```
 
-  <p><strong>Modified lines 101-101:</strong></p>
-
-```markdown
+# Line 101:
 
     ├── _folder.yml
-```
 
-  <p><strong>Modified lines 102-102:</strong></p>
-
-```markdown
+# Line 102:
 
     ├── torvalds-linux.yml
-```
 
-  <p><strong>Modified lines 103-103:</strong></p>
-
-```markdown
+# Line 103:
 
     └── microsoft-vscode.yml
-```
 
-  <p><strong>Modified lines 104-104:</strong></p>
-
-```markdown
-
-```
-```
-
-  <p><strong>Modified lines 105-105:</strong></p>
-
-```markdown
+# Line 104:
 
 ```
 
-  <p><strong>Modified lines 106-106:</strong></p>
-
-```markdown
+# Line 106:
 
 **Benefits identified:**
-```
 
-  <p><strong>Modified lines 107-107:</strong></p>
-
-```markdown
+# Line 107:
 
 - More intuitive file organization
-```
 
-  <p><strong>Modified lines 108-108:</strong></p>
-
-```markdown
+# Line 108:
 
 - Eliminates folders.yml mapping complexity
-```
 
-  <p><strong>Modified lines 109-109:</strong></p>
-
-```markdown
+# Line 109:
 
 - Natural mixing of own/starred repos
-```
 
-  <p><strong>Modified lines 110-110:</strong></p>
-
-```markdown
+# Line 110:
 
 - Easy to browse in GitHub web interface
-```
 
-  <p><strong>Modified lines 111-111:</strong></p>
-
-```markdown
+# Line 111:
 
 - Drag-and-drop = file moves
-```
 
-  <p><strong>Modified lines 112-112:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 113-113:</strong></p>
-
-```markdown
+# Line 113:
 
 ## File Structure Details Designed
-```
 
-  <p><strong>Modified lines 114-114:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 115-115:</strong></p>
-
-```markdown
+# Line 115:
 
 **schema.yml example:**
-```
 
-  <p><strong>Modified lines 116-116:</strong></p>
-
-```markdown
+# Line 116:
 
 ```yaml
-```
 
-  <p><strong>Modified lines 117-117:</strong></p>
-
-```markdown
+# Line 117:
 
 version: "1.0"
-```
 
-  <p><strong>Modified lines 118-118:</strong></p>
-
-```markdown
+# Line 118:
 
 columns:
-```
 
-  <p><strong>Modified lines 119-119:</strong></p>
-
-```markdown
+# Line 119:
 
   priority:
-```
 
-  <p><strong>Modified lines 120-120:</strong></p>
-
-```markdown
+# Line 120:
 
     type: "integer"
-```
 
-  <p><strong>Modified lines 121-121:</strong></p>
-
-```markdown
+# Line 121:
 
     min: 1
-```
 
-  <p><strong>Modified lines 122-122:</strong></p>
-
-```markdown
+# Line 122:
 
     max: 5
-```
 
-  <p><strong>Modified lines 123-123:</strong></p>
-
-```markdown
+# Line 123:
 
     default: 3
-```
 
-  <p><strong>Modified lines 124-124:</strong></p>
-
-```markdown
+# Line 124:
 
   technology_stack:
-```
 
-  <p><strong>Modified lines 125-125:</strong></p>
-
-```markdown
+# Line 125:
 
     type: "array"
-```
 
-  <p><strong>Modified lines 126-126:</strong></p>
-
-```markdown
+# Line 126:
 
     items: "string"
-```
 
-  <p><strong>Modified lines 127-127:</strong></p>
-
-```markdown
+# Line 127:
 
   last_reviewed:
-```
 
-  <p><strong>Modified lines 128-128:</strong></p>
-
-```markdown
+# Line 128:
 
     type: "date"
-```
 
-  <p><strong>Modified lines 129-129:</strong></p>
-
-```markdown
+# Line 129:
 
     format: "YYYY-MM-DD"
-```
 
-  <p><strong>Modified lines 130-130:</strong></p>
-
-```markdown
+# Line 130:
 
   notes:
-```
 
-  <p><strong>Modified lines 131-131:</strong></p>
-
-```markdown
+# Line 131:
 
     type: "text"
-```
 
-  <p><strong>Modified lines 132-132:</strong></p>
-
-```markdown
+# Line 132:
 
     multiline: true
-```
 
-  <p><strong>Modified lines 133-133:</strong></p>
-
-```markdown
+# Line 133:
 
   custom_url:
-```
 
-  <p><strong>Modified lines 134-134:</strong></p>
-
-```markdown
+# Line 134:
 
     type: "url"
-```
 
-  <p><strong>Modified lines 135-135:</strong></p>
-
-```markdown
+# Line 135:
 
     validation: "^https?://"
-```
 
-  <p><strong>Modified lines 136-136:</strong></p>
-
-```markdown
-
-```
-```
-
-  <p><strong>Modified lines 137-137:</strong></p>
-
-```markdown
+# Line 136:
 
 ```
 
-  <p><strong>Modified lines 138-138:</strong></p>
-
-```markdown
+# Line 138:
 
 **_folder.yml example:**
-```
 
-  <p><strong>Modified lines 139-139:</strong></p>
-
-```markdown
+# Line 139:
 
 ```yaml
-```
 
-  <p><strong>Modified lines 140-140:</strong></p>
-
-```markdown
+# Line 140:
 
 name: "Web Apps"
-```
 
-  <p><strong>Modified lines 141-141:</strong></p>
-
-```markdown
+# Line 141:
 
 description: "Active web application projects"
-```
 
-  <p><strong>Modified lines 142-142:</strong></p>
-
-```markdown
+# Line 142:
 
 color: "#3498db"
-```
 
-  <p><strong>Modified lines 143-143:</strong></p>
-
-```markdown
+# Line 143:
 
 created: "2025-09-12"
-```
 
-  <p><strong>Modified lines 144-144:</strong></p>
-
-```markdown
-
-```
-```
-
-  <p><strong>Modified lines 145-145:</strong></p>
-
-```markdown
+# Line 144:
 
 ```
 
-  <p><strong>Modified lines 146-146:</strong></p>
-
-```markdown
+# Line 146:
 
 **Individual repo file example:**
-```
 
-  <p><strong>Modified lines 147-147:</strong></p>
-
-```markdown
+# Line 147:
 
 ```yaml
-```
 
-  <p><strong>Modified lines 148-148:</strong></p>
-
-```markdown
+# Line 148:
 
 type: "own"
-```
 
-  <p><strong>Modified lines 149-149:</strong></p>
-
-```markdown
+# Line 149:
 
 folder_id: "active.webapps"
-```
 
-  <p><strong>Modified lines 150-150:</strong></p>
-
-```markdown
+# Line 150:
 
 fields:
-```
 
-  <p><strong>Modified lines 151-151:</strong></p>
-
-```markdown
+# Line 151:
 
   priority: 5
-```
 
-  <p><strong>Modified lines 152-152:</strong></p>
-
-```markdown
+# Line 152:
 
   technology_stack: ["python", "flask", "javascript"]
-```
 
-  <p><strong>Modified lines 153-153:</strong></p>
-
-```markdown
+# Line 153:
 
   notes: "Personal project for GitHub repo organization"
-```
 
-  <p><strong>Modified lines 154-154:</strong></p>
-
-```markdown
+# Line 154:
 
   last_reviewed: "2025-09-12"
-```
 
-  <p><strong>Modified lines 155-155:</strong></p>
-
-```markdown
-
-```
-```
-
-  <p><strong>Modified lines 156-156:</strong></p>
-
-```markdown
+# Line 155:
 
 ```
 
-  <p><strong>Modified lines 157-157:</strong></p>
-
-```markdown
+# Line 157:
 
 ## Update Strategy Discussion
-```
 
-  <p><strong>Modified lines 158-158:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 159-159:</strong></p>
-
-```markdown
+# Line 159:
 
 **Assistant presented three options:**
-```
 
-  <p><strong>Modified lines 160-160:</strong></p>
-
-```markdown
+# Line 160:
 
 1. Immediate save (every change commits)
-```
 
-  <p><strong>Modified lines 161-161:</strong></p>
-
-```markdown
+# Line 161:
 
 2. Session-based save (save button or navigate away)
-```
 
-  <p><strong>Modified lines 162-162:</strong></p>
-
-```markdown
+# Line 162:
 
 3. Auto-save with throttling (30 seconds of inactivity)
-```
 
-  <p><strong>Modified lines 163-163:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 164-164:</strong></p>
-
-```markdown
+# Line 164:
 
 **User chose:** Session-based save with auto-save backup to localStorage
-```
 
-  <p><strong>Modified lines 165-165:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 166-166:</strong></p>
-
-```markdown
+# Line 166:
 
 ## Data Conflict Resolution Strategy
-```
 
-  <p><strong>Modified lines 167-167:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 168-168:</strong></p>
-
-```markdown
+# Line 168:
 
 **Assistant designed resolution approach:**
-```
 
-  <p><strong>Modified lines 169-169:</strong></p>
-
-```markdown
+# Line 169:
 
 ```python
-```
 
-  <p><strong>Modified lines 170-170:</strong></p>
-
-```markdown
+# Line 170:
 
 def resolve_field_conflicts(repo_data, schema):
-```
 
-  <p><strong>Modified lines 171-171:</strong></p>
-
-```markdown
+# Line 171:
 
     resolved = {}
-```
 
-  <p><strong>Modified lines 172-172:</strong></p>
-
-```markdown
+# Line 172:
 
     errors = []
-```
 
-  <p><strong>Modified lines 173-173:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 174-174:</strong></p>
-
-```markdown
+# Line 174:
 
     for field_name, value in repo_data.get('fields', {}).items():
-```
 
-  <p><strong>Modified lines 175-175:</strong></p>
-
-```markdown
+# Line 175:
 
         schema_field = find_schema_field_ignore_case(field_name, schema)
-```
 
-  <p><strong>Modified lines 176-176:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 177-177:</strong></p>
-
-```markdown
+# Line 177:
 
         if not schema_field:
-```
 
-  <p><strong>Modified lines 178-178:</strong></p>
-
-```markdown
+# Line 178:
 
             errors.append(f"Unknown field '{field_name}' treated as text")
-```
 
-  <p><strong>Modified lines 179-179:</strong></p>
-
-```markdown
+# Line 179:
 
             resolved[field_name.lower()] = str(value)
-```
 
-  <p><strong>Modified lines 180-180:</strong></p>
-
-```markdown
+# Line 180:
 
             continue
-```
 
-  <p><strong>Modified lines 181-181:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 182-182:</strong></p>
-
-```markdown
+# Line 182:
 
         try:
-```
 
-  <p><strong>Modified lines 183-183:</strong></p>
-
-```markdown
+# Line 183:
 
             resolved[schema_field['canonical_name']] = coerce_to_type(value, schema_field)
-```
 
-  <p><strong>Modified lines 184-184:</strong></p>
-
-```markdown
+# Line 184:
 
         except ValidationError as e:
-```
 
-  <p><strong>Modified lines 185-185:</strong></p>
-
-```markdown
+# Line 185:
 
             errors.append(f"Field '{field_name}': {e.message}, using default")
-```
 
-  <p><strong>Modified lines 186-186:</strong></p>
-
-```markdown
+# Line 186:
 
             resolved[schema_field['canonical_name']] = schema_field.get('default')
-```
 
-  <p><strong>Modified lines 187-187:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 188-188:</strong></p>
-
-```markdown
+# Line 188:
 
     return resolved, errors
-```
 
-  <p><strong>Modified lines 189-189:</strong></p>
-
-```markdown
-
-```
-```
-
-  <p><strong>Modified lines 190-190:</strong></p>
-
-```markdown
+# Line 189:
 
 ```
 
-  <p><strong>Modified lines 191-191:</strong></p>
-
-```markdown
+# Line 191:
 
 ## Cleanup Strategy
-```
 
-  <p><strong>Modified lines 192-192:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 193-193:</strong></p>
-
-```markdown
+# Line 193:
 
 **Assistant proposed:** Keep manifest in folders.yml, flag orphaned files, user decides to delete/reassign, auto-cleanup after 30 days.
-```
 
-  <p><strong>Modified lines 194-194:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 195-195:</strong></p>
-
-```markdown
+# Line 195:
 
 **User feedback:**
-```
 
-  <p><strong>Modified lines 196-196:</strong></p>
-
-```markdown
+# Line 196:
 
 - Move to "archived" right away (no delay)
-```
 
-  <p><strong>Modified lines 197-197:</strong></p>
-
-```markdown
+# Line 197:
 
 - Make orphaned items feel natural with separate "Archived" view
-```
 
-  <p><strong>Modified lines 198-198:</strong></p>
-
-```markdown
+# Line 198:
 
 - Use "unlink/disconnect" terminology, not "delete"
-```
 
-  <p><strong>Modified lines 199-199:</strong></p>
-
-```markdown
+# Line 199:
 
 - When user "unlinks", make clear they're removing notes/custom fields about repo
-```
 
-  <p><strong>Modified lines 200-200:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 201-201:</strong></p>
-
-```markdown
+# Line 201:
 
 **User added:** For field deletion, warn user if non-empty values exist: "This will permanently delete N nonempty values ([list examples]...) are you sure?"
-```
 
-  <p><strong>Modified lines 202-202:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 203-203:</strong></p>
-
-```markdown
+# Line 203:
 
 ## Final Clarifications Round
-```
 
-  <p><strong>Modified lines 204-204:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 205-205:</strong></p>
-
-```markdown
+# Line 205:
 
 **User's final decisions:**
-```
 
-  <p><strong>Modified lines 206-206:</strong></p>
-
-```markdown
+# Line 206:
 
 - ✅ Physical folders approach
-```
 
-  <p><strong>Modified lines 207-207:</strong></p>
-
-```markdown
+# Line 207:
 
 - **Auto-save strategy:** Every 30 seconds IF changes detected, PLUS immediate auto-save for structural changes (folder nesting, field names, etc.)
-```
 
-  <p><strong>Modified lines 208-208:</strong></p>
-
-```markdown
+# Line 208:
 
 - **Validation on folder moves:** Yes, validate repo metadata compatibility
-```
 
-  <p><strong>Modified lines 209-209:</strong></p>
-
-```markdown
+# Line 209:
 
 - **Bulk operations:** File under "future updates" section
-```
 
-  <p><strong>Modified lines 210-210:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 211-211:</strong></p>
-
-```markdown
+# Line 211:
 
 ## Final Architecture Summary
-```
 
-  <p><strong>Modified lines 212-212:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 213-213:</strong></p>
-
-```markdown
+# Line 213:
 
 **Tech Stack:**
-```
 
-  <p><strong>Modified lines 214-214:</strong></p>
-
-```markdown
+# Line 214:
 
 - Frontend: Flask + Bootstrap 5 + jQuery
-```
 
-  <p><strong>Modified lines 215-215:</strong></p>
-
-```markdown
+# Line 215:
 
 - Backend: Flask (Python)
-```
 
-  <p><strong>Modified lines 216-216:</strong></p>
-
-```markdown
+# Line 216:
 
 - Storage: YAML files in GitHub repo (NO database)
-```
 
-  <p><strong>Modified lines 217-217:</strong></p>
-
-```markdown
+# Line 217:
 
 - Authentication: GitHub OAuth
-```
 
-  <p><strong>Modified lines 218-218:</strong></p>
-
-```markdown
+# Line 218:
 
 - Deployment: fly.io
-```
 
-  <p><strong>Modified lines 219-219:</strong></p>
-
-```markdown
+# Line 219:
 
 - Caching: Browser cache for GitHub API responses
-```
 
-  <p><strong>Modified lines 220-220:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 221-221:</strong></p>
-
-```markdown
+# Line 221:
 
 **Data Management:**
-```
 
-  <p><strong>Modified lines 222-222:</strong></p>
-
-```markdown
+# Line 222:
 
 - Field names: Case-sensitive in schema, case-insensitive (lowercase) in repo files
-```
 
-  <p><strong>Modified lines 223-223:</strong></p>
-
-```markdown
+# Line 223:
 
 - Empty fields: Omitted from YAML, shown as empty in UI
-```
 
-  <p><strong>Modified lines 224-224:</strong></p>
-
-```markdown
+# Line 224:
 
 - Field types: string, integer, float, boolean, date, array, url, enum, text
-```
 
-  <p><strong>Modified lines 225-225:</strong></p>
-
-```markdown
+# Line 225:
 
 - Conflict resolution: Auto-coerce types, fallback to defaults, log errors
-```
 
-  <p><strong>Modified lines 226-226:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 227-227:</strong></p>
-
-```markdown
+# Line 227:
 
 **Save Strategy:**
-```
 
-  <p><strong>Modified lines 228-228:</strong></p>
-
-```markdown
+# Line 228:
 
 - Immediate: Structural changes
-```
 
-  <p><strong>Modified lines 229-229:</strong></p>
-
-```markdown
+# Line 229:
 
 - 30-second auto-save: Field value changes
-```
 
-  <p><strong>Modified lines 230-230:</strong></p>
-
-```markdown
+# Line 230:
 
 - Navigation save: On page navigation/close
-```
 
-  <p><strong>Modified lines 231-231:</strong></p>
-
-```markdown
+# Line 231:
 
 - Local backup: localStorage for unsaved changes
-```
 
-  <p><strong>Modified lines 232-232:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 233-233:</strong></p>
-
-```markdown
+# Line 233:
 
 **Data Cleanup:**
-```
 
-  <p><strong>Modified lines 234-234:</strong></p>
-
-```markdown
+# Line 234:
 
 - Orphaned files → "Archived" folder immediately
-```
 
-  <p><strong>Modified lines 235-235:</strong></p>
-
-```markdown
+# Line 235:
 
 - "Unlink/Disconnect" terminology
-```
 
-  <p><strong>Modified lines 236-236:</strong></p>
-
-```markdown
+# Line 236:
 
 - Field deletion warnings with examples
-```
 
-  <p><strong>Modified lines 237-237:</strong></p>
-
-```markdown
+# Line 237:
 
 - Separate archived view
-```
 
-  <p><strong>Modified lines 238-238:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 239-239:</strong></p>
-
-```markdown
+# Line 239:
 
 **UI Features:**
-```
 
-  <p><strong>Modified lines 240-240:</strong></p>
-
-```markdown
+# Line 240:
 
 - Single expandable table with nested folders
-```
 
-  <p><strong>Modified lines 241-241:</strong></p>
-
-```markdown
+# Line 241:
 
 - Both drag-and-drop AND context menus
-```
 
-  <p><strong>Modified lines 242-242:</strong></p>
-
-```markdown
+# Line 242:
 
 - Custom typed columns
-```
 
-  <p><strong>Modified lines 243-243:</strong></p>
-
-```markdown
+# Line 243:
 
 - Built-in metadata (type, visibility, stars, forks, dates)
-```
 
-  <p><strong>Modified lines 244-244:</strong></p>
-
-```markdown
+# Line 244:
 
 - Single repo detail view
-```
 
-  <p><strong>Modified lines 245-245:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 246-246:</strong></p>
-
-```markdown
+# Line 246:
 
 **Future Considerations (V2+):**
-```
 
-  <p><strong>Modified lines 247-247:</strong></p>
-
-```markdown
+# Line 247:
 
 - Bulk operations
-```
 
-  <p><strong>Modified lines 248-248:</strong></p>
-
-```markdown
+# Line 248:
 
 - Advanced filtering/search
-```
 
-  <p><strong>Modified lines 249-249:</strong></p>
-
-```markdown
+# Line 249:
 
 - Export functionality
-```
 
-  <p><strong>Modified lines 250-250:</strong></p>
-
-```markdown
+# Line 250:
 
 - Sharing organization schemes
-```
 
-  <p><strong>Modified lines 251-251:</strong></p>
-
-```markdown
+# Line 251:
 
 - Complex field types
-```
 
-  <p><strong>Modified lines 252-252:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 253-253:</strong></p>
-
-```markdown
+# Line 253:
 
 ---
-```
 
-  <p><strong>Modified lines 254-254:</strong></p>
-
-```markdown
-
-```
-
-  <p><strong>Modified lines 255-255:</strong></p>
-
-```markdown
+# Line 255:
 
 This brainstorming session resulted in a comprehensive architecture that balances simplicity with powerful organization capabilities, leveraging GitHub's infrastructure for storage while providing a rich user interface for repo management.
-```
-
-  <p><strong>Modified lines 256-256:</strong></p>
-
-```markdown
-
-```
+````
 
 </details>
 
@@ -2441,7 +1518,7 @@ Now I'll update the PRD with all our decisions:
   <summary>🛠️ File Edit: PRD.md</summary>
   <p><strong>Modified lines 52-81:</strong></p>
 
-```markdown
+````markdown
 ## 4. Technical Stack & Architecture
 
 *   **Frontend:** **jQuery and Bootstrap 5**
@@ -2500,7 +1577,7 @@ repo-organizer-metadata/
     ├── _folder.yml
     └── old-repo.yml
 ```
-```
+````
 
 </details>
 
@@ -2570,7 +1647,7 @@ repo-organizer-metadata/
 
 <details>
   <summary>🛠️ File Edit: PRD.md</summary>
-  <p><strong>Modified lines 159-159:</strong></p>
+  <p><strong>Modified line 159:</strong></p>
 
 ```markdown
 ## 7. Security & Privacy Considerations
@@ -2607,7 +1684,7 @@ repo-organizer-metadata/
 
 <details>
   <summary>🛠️ File Edit: PRD.md</summary>
-  <p><strong>Modified lines 180-180:</strong></p>
+  <p><strong>Modified line 180:</strong></p>
 
 ```markdown
 ## 9. Future Enhancements (Version 2.0+)
