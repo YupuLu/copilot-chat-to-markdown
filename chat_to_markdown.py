@@ -7,6 +7,7 @@ Usage: python chat_to_markdown.py input.json output.md
 
 import json
 import sys
+import os
 import argparse
 from datetime import datetime
 from typing import Dict, List, Any
@@ -20,8 +21,21 @@ def extract_text_from_response_part(part: Dict[str, Any]) -> str:
             # Handle textEditGroup - extract edit content for tool invocations
             if kind == 'textEditGroup':
                 return f"__TEXT_EDIT_GROUP__{json.dumps(part)}__TEXT_EDIT_GROUP__"
+            # Handle inline references - extract the referenced name/symbol
+            if kind == 'inlineReference':
+                inline_ref = part.get('inlineReference', {})
+                if isinstance(inline_ref, dict):
+                    # Try to get the name first
+                    if 'name' in inline_ref:
+                        return f"`{inline_ref['name']}`"
+                    # If no name, try to extract filename from path
+                    elif 'path' in inline_ref:
+                        import os
+                        filename = os.path.basename(inline_ref['path'])
+                        return f"`{filename}`"
+                return ""
             # Skip other internal VS Code objects
-            if kind in ['inlineReference', 'undoStop', 'codeblockUri']:
+            if kind in ['undoStop', 'codeblockUri']:
                 return ""
             # Handle tool invocation messages - return special markers for processing
             if kind == 'toolInvocationSerialized':
@@ -38,8 +52,8 @@ def extract_text_from_response_part(part: Dict[str, Any]) -> str:
             elif 'pastTenseMessage' in part and isinstance(part['pastTenseMessage'], dict) and 'value' in part['pastTenseMessage']:
                 return f"*{part['pastTenseMessage']['value']}*"
             
-        # Skip objects with internal IDs, metadata structure, or inline references
-        if ('id' in part and ('kind' in part or '$mid' in part)) or '$mid' in part or 'inlineReference' in part:
+        # Skip objects with internal IDs or metadata structure
+        if ('id' in part and ('kind' in part or '$mid' in part)) or '$mid' in part:
             return ""
             
         # Handle regular content
@@ -64,10 +78,61 @@ def extract_text_from_response_part(part: Dict[str, Any]) -> str:
         
     return str(part) if part else ""
 
+def smart_join_parts(parts: list) -> str:
+    """
+    Intelligently join response parts, adding spacing when needed.
+    Detects paragraph boundaries and adds proper spacing.
+    """
+    if not parts:
+        return ""
+    
+    result = []
+    for i, part in enumerate(parts):
+        if not part or not part.strip():
+            continue
+        
+        part_stripped = part.strip()
+        
+        # Add the part
+        result.append(part)
+        
+        # Check if we need spacing before the next part
+        if i < len(parts) - 1:
+            # Find next non-empty part
+            next_idx = i + 1
+            while next_idx < len(parts) and (not parts[next_idx] or not parts[next_idx].strip()):
+                next_idx += 1
+            
+            if next_idx < len(parts):
+                next_part = parts[next_idx].strip()
+                
+                # Add double newline if:
+                # 1. Current part ends with sentence/paragraph (., !, ?) 
+                # 2. Next part starts with paragraph indicator (**, #, <details)
+                current_ends_sentence = part_stripped.endswith(('.', '!', '?'))
+                next_starts_paragraph = (next_part.startswith('**') or 
+                                        next_part.startswith('#') or
+                                        next_part.startswith('<details'))
+                
+                if current_ends_sentence and next_starts_paragraph:
+                    # Ensure we have proper spacing
+                    if not result[-1].endswith('\n\n'):
+                        if result[-1].endswith('\n'):
+                            result.append('\n')
+                        else:
+                            result.append('\n\n')
+    
+    return ''.join(result)
+
 def format_message_text(text: str) -> str:
     """Format message text with proper markdown."""
     if not text:
         return ""
+    
+    # Clean up literal \n\n escape sequences that appear in some JSON exports
+    # These show up as the literal string "\n\n" instead of actual newlines
+    import re
+    text = re.sub(r'\\n\\n', '\n\n', text)
     
     # Remove any remaining raw object representations
     if '{' in text and ('$mid' in text or 'kind' in text):
@@ -132,7 +197,14 @@ def format_message_text(text: str) -> str:
     while result_lines and result_lines[-1].strip() == '':
         result_lines.pop()
     
-    return '\n'.join(result_lines)
+    # Remove empty code blocks (``` followed immediately by ```)
+    text_result = '\n'.join(result_lines)
+    import re
+    # Remove empty code blocks with optional language specifier (``` followed immediately by ```)
+    # This pattern ensures we only remove when there's truly nothing between the markers
+    text_result = re.sub(r'```[a-z]*\s*\n\s*```', '', text_result)
+    
+    return text_result
 
 def format_timestamp(timestamp_ms: int) -> str:
     """Format timestamp from milliseconds to readable format."""
@@ -212,7 +284,6 @@ def format_references(variables: List[Dict[str, Any]]) -> str:
   <summary>{summary}</summary>
   <p>{content}</p>
 </details>
-
 
 """
 
@@ -700,6 +771,11 @@ def process_special_markers(text: str, tool_call_results: Dict[str, Any] = None,
     
     text = re.sub(r'__PROGRESS_TASK__(.*?)__PROGRESS_TASK__', replace_progress_task, text, flags=re.DOTALL)
     
+    # Fix spacing: Add double newline between sentences ending with . and paragraphs starting with **
+    # This handles cases where text like "directory. **Bold text" gets concatenated
+    # But NOT numbered list items like "1.\n\n**Header**"
+    text = re.sub(r'([a-z][.!?])\s*(\*\*[A-Z])', r'\1\n\n\2', text)
+    
     return text
 
 def format_tool_calls(tool_calls: list) -> str:
@@ -754,6 +830,31 @@ def format_tool_calls(tool_calls: list) -> str:
         formatted_calls.append(call_line)
     
     return '\n'.join(formatted_calls) + '\n'
+
+def add_spacing_after_details(markdown_text: str) -> str:
+    """Add <br /> after </details> tags when followed by regular content (not another <details>)."""
+    lines = markdown_text.split('\n')
+    result = []
+    
+    for i, line in enumerate(lines):
+        result.append(line)
+        
+        # Check if this line ends with </details>
+        if line.strip() == '</details>':
+            # Look ahead to see what comes next (skip blank lines)
+            next_content_idx = i + 1
+            while next_content_idx < len(lines) and lines[next_content_idx].strip() == '':
+                next_content_idx += 1
+            
+            # If next content is not another <details> tag and not end of file
+            if next_content_idx < len(lines):
+                next_line = lines[next_content_idx].strip()
+                # Add <br /> if next line is actual content (not <details> or empty)
+                if next_line and not next_line.startswith('<details'):
+                    # Add a <br /> on the next line after any existing blank line
+                    result.append('<br />')
+    
+    return '\n'.join(result)
 
 def parse_chat_log(chat_data: Dict[str, Any]) -> str:
     """Parse the chat log JSON and convert to markdown."""
@@ -820,10 +921,29 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
         else:
             nav_links.append(">")  # Placeholder for last request
         
+        # Get result for status checking
+        result = request.get('result', {})
+        
+        # Determine status
+        status_text = ""
+        if isinstance(result, dict):
+            if result.get('errorDetails', {}).get('message'):
+                if 'canceled' in result.get('errorDetails', {}).get('message', '').lower():
+                    status_text = " *(CANCELED)*"
+                else:
+                    status_text = " *(ERROR)*"
+        
         # Add explicit anchor and header with navigation
         md_lines.append(f'<a name="request-{i}"></a>')
-        md_lines.append(f"## Request {i} {' '.join(nav_links)}")
+        md_lines.append(f"## Request {i} {' '.join(nav_links)}{status_text}")
         md_lines.append("")
+        
+        # Add timestamp if available
+        timestamp = request.get('timestamp')
+        if timestamp:
+            timestamp_str = format_timestamp(timestamp)
+            md_lines.append(f"**Timestamp:** {timestamp_str}")
+            md_lines.append("")
         
         # Extract user message text
         message = request.get('message', {})
@@ -842,14 +962,13 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                     message_text = ''.join(text_parts)
         
         if message_text:
-            md_lines.append("### Participant")
-            md_lines.append("")
-            md_lines.append(format_message_text(message_text))
+            md_lines.append("**USER MESSAGE:**")
+            md_lines.append(f"> {format_message_text(message_text).replace(chr(10), chr(10) + '> ')}")
             md_lines.append("")
         
         # Assistant response
         response = request.get('response', [])
-        result = request.get('result', {})
+        # result already defined above for status checking
         
         # Check for error details
         error_details = None
@@ -858,8 +977,7 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
         
         # Process assistant responses (can have both response content and errors)
         if response or (error_details and isinstance(error_details, dict) and error_details.get('message')):
-            md_lines.append("### Assistant")
-            md_lines.append("")
+            md_lines.append("**ASSISTANT RESPONSE:**")
             
             # Add references if they exist (might be present even with errors)
             variable_data = request.get('variableData', {})
@@ -869,6 +987,8 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                     references_formatted = format_references(variables)
                     if references_formatted.strip():
                         md_lines.append(references_formatted)
+            else:
+                md_lines.append("")
             
             # Process normal response content first (if any)
             if response:
@@ -925,13 +1045,15 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
                         tool_call_rounds = metadata.get('toolCallRounds', [])
                 
                 if response_parts:
-                    incremental_response = '\n'.join(response_parts)
+                    # Join parts with smart spacing to preserve paragraph boundaries
+                    incremental_response = smart_join_parts(response_parts)
                     # Process special markers for tool invocations with tool call results
                     incremental_response = process_special_markers(incremental_response, tool_call_results, tool_call_rounds)
                     
                     # Use the incremental response if it has more detail, otherwise use consolidated
-                    if ('__TOOL_INVOCATION__' in '\n'.join(response_parts) or 
-                        '__TEXT_EDIT_GROUP__' in '\n'.join(response_parts) or 
+                    joined_for_check = ''.join(response_parts)
+                    if ('__TOOL_INVOCATION__' in joined_for_check or 
+                        '__TEXT_EDIT_GROUP__' in joined_for_check or 
                         not consolidated_response.strip()):
                         consolidated_response = incremental_response
                 
@@ -992,41 +1114,316 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
             md_lines.append("---")
             md_lines.append("")
     
-    return '\n'.join(md_lines)
+    markdown_text = '\n'.join(md_lines)
+    return add_spacing_after_details(markdown_text)
+
+def process_single_file(input_file: str, file_title: str = None) -> str:
+    """Process a single JSON file and return markdown content."""
+    with open(input_file, 'r', encoding='utf-8') as f:
+        chat_data = json.load(f)
+    
+    markdown_content = parse_chat_log(chat_data)
+    
+    # If a custom title is provided, add it as a header
+    if file_title:
+        markdown_content = f"# {file_title}\n\n{markdown_content}"
+    
+    return markdown_content
+
+def parse_combined_chat_logs(file_paths: List[str]) -> str:
+    """Parse multiple chat logs with continuous numbering and unified TOC."""
+    all_requests = []
+    file_boundaries = []  # Track which file each request came from
+    
+    # Load all chat data and collect requests
+    for file_path in file_paths:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            chat_data = json.load(f)
+        
+        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        requests = chat_data.get('requests', [])
+        
+        file_boundaries.append({
+            'start_index': len(all_requests),
+            'end_index': len(all_requests) + len(requests),
+            'file_name': file_name,
+            'requester': chat_data.get('requesterUsername', 'User'),
+            'responder': chat_data.get('responderUsername', 'GitHub Copilot')
+        })
+        
+        all_requests.extend(requests)
+    
+    # Build combined markdown
+    md_lines = []
+    
+    # Header
+    md_lines.append("# GitHub Copilot Chat Log (Combined)")
+    md_lines.append("")
+    md_lines.append(f"**Participant:** {file_boundaries[0]['requester']}")
+    md_lines.append(f"<br>**Assistant:** {file_boundaries[0]['responder']}")
+    md_lines.append("")
+    
+    # Generate unified table of contents
+    if len(all_requests) > 1:
+        md_lines.append('<a name="table-of-contents"></a>')
+        md_lines.append("## Table of Contents")
+        md_lines.append("")
+        
+        # Add file sections to TOC
+        for boundary in file_boundaries:
+            md_lines.append(f"### {boundary['file_name']}")
+            md_lines.append("")
+            for i in range(boundary['start_index'], boundary['end_index']):
+                req_num = i + 1
+                request = all_requests[i]
+                
+                # Extract first line of user message for preview
+                message = request.get('message', {})
+                preview = ""
+                if isinstance(message, dict):
+                    if 'text' in message:
+                        preview = message['text']
+                    elif 'parts' in message:
+                        parts = message['parts']
+                        if isinstance(parts, list):
+                            for part in parts:
+                                if isinstance(part, dict) and 'text' in part:
+                                    preview = part['text']
+                                    break
+                
+                # Get first line for preview (limit to 80 chars)
+                if preview:
+                    first_line = preview.split('\n')[0]
+                    if len(first_line) > 80:
+                        first_line = first_line[:77] + "..."
+                else:
+                    first_line = "[No message content]"
+                
+                md_lines.append(f"- [Request {req_num}](#request-{req_num}): {first_line}")
+            md_lines.append("")
+        
+    md_lines.append("---")
+    md_lines.append("")
+    
+    # Process all requests with continuous numbering
+    for i, request in enumerate(all_requests):
+        req_num = i + 1
+        
+        # Find which file this request belongs to
+        current_file = None
+        for boundary in file_boundaries:
+            if boundary['start_index'] <= i < boundary['end_index']:
+                current_file = boundary['file_name']
+                # Add file header if this is the first request from this file
+                if i == boundary['start_index']:
+                    md_lines.append(f"## {current_file}")
+                    md_lines.append("")
+                break
+        
+        # Get result for status checking
+        result = request.get('result', {})
+        
+        # Determine status
+        status_text = ""
+        if isinstance(result, dict):
+            if result.get('errorDetails', {}).get('message'):
+                if 'canceled' in result.get('errorDetails', {}).get('message', '').lower():
+                    status_text = " *(CANCELED)*"
+                else:
+                    status_text = " *(ERROR)*"
+        
+        # Navigation links
+        nav_links = []
+        nav_links.append("[^](#table-of-contents)")
+        if req_num > 1:
+            nav_links.append(f"[<](#request-{req_num-1})")
+        else:
+            nav_links.append("<")
+        if req_num < len(all_requests):
+            nav_links.append(f"[>](#request-{req_num+1})")
+        else:
+            nav_links.append(">")
+        
+        # Add request header
+        md_lines.append(f'<a name="request-{req_num}"></a>')
+        md_lines.append(f"### Request {req_num} {' '.join(nav_links)}{status_text}")
+        md_lines.append("")
+        
+        # Add timestamp if available
+        timestamp = request.get('timestamp')
+        if timestamp:
+            timestamp_str = format_timestamp(timestamp)
+            md_lines.append(f"**Timestamp:** {timestamp_str}")
+            md_lines.append("")
+        
+        # Extract user message text
+        message = request.get('message', {})
+        message_text = ""
+        
+        if isinstance(message, dict):
+            if 'text' in message:
+                message_text = message['text']
+            elif 'parts' in message:
+                parts = message['parts']
+                if isinstance(parts, list):
+                    text_parts = []
+                    for part in parts:
+                        if isinstance(part, dict) and 'text' in part:
+                            text_parts.append(part['text'])
+                    message_text = ''.join(text_parts)
+        
+        if message_text:
+            md_lines.append("**USER MESSAGE:**")
+            md_lines.append(f"> {format_message_text(message_text).replace(chr(10), chr(10) + '> ')}")
+            md_lines.append("")
+        
+        # Assistant response
+        response = request.get('response', [])
+        
+        # Check for error details
+        error_details = None
+        if isinstance(result, dict):
+            error_details = result.get('errorDetails', {})
+        
+        # Process assistant responses
+        if response or (error_details and isinstance(error_details, dict) and error_details.get('message')):
+            md_lines.append("**ASSISTANT RESPONSE:**")
+            
+            # Add references if they exist
+            variable_data = request.get('variableData', {})
+            if isinstance(variable_data, dict):
+                variables = variable_data.get('variables', [])
+                if variables:
+                    references_formatted = format_references(variables)
+                    if references_formatted.strip():
+                        md_lines.append(references_formatted)
+            else:
+                md_lines.append("")
+            
+            # Process normal response content
+            if response:
+                response_parts = []
+                for part in response:
+                    part_text = extract_text_from_response_part(part)
+                    if part_text and part_text.strip():
+                        response_parts.append(part_text)
+                
+                # Extract tool call results
+                tool_call_results = {}
+                tool_call_rounds = []
+                if isinstance(result, dict):
+                    metadata = result.get('metadata', {})
+                    if isinstance(metadata, dict):
+                        tool_call_results = metadata.get('toolCallResults', {})
+                        tool_call_rounds = metadata.get('toolCallRounds', [])
+                
+                if response_parts:
+                    # Join parts with smart spacing to preserve paragraph boundaries
+                    incremental_response = smart_join_parts(response_parts)
+                    incremental_response = process_special_markers(incremental_response, tool_call_results, tool_call_rounds)
+                    cleaned_response = format_message_text(incremental_response)
+                    if cleaned_response.strip():
+                        md_lines.append(cleaned_response)
+                        md_lines.append("")
+            
+            # Add error message if request failed
+            if error_details and isinstance(error_details, dict) and error_details.get('message'):
+                error_message = format_error_message(error_details)
+                if error_message.strip():
+                    md_lines.append(error_message)
+                    md_lines.append("")
+        
+        # Add separator between requests
+        if req_num < len(all_requests):
+            md_lines.append("---")
+            md_lines.append("")
+    
+    markdown_text = '\n'.join(md_lines)
+    return add_spacing_after_details(markdown_text)
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert a Copilot chat log JSON file to markdown format",
+        description="Convert Copilot chat log JSON file(s) to markdown format",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python chat_to_markdown.py input.json output.md
+  Single file:
+    python chat_to_markdown.py input.json output.md
+  
+  Multiple files (combined):
+    python chat_to_markdown.py file1.json file2.json file3.json -o output.md --combine
+  
+  Folder (combined):
+    python chat_to_markdown.py /path/to/folder -o output.md --combine
+  
+  Folder (individual files):
+    python chat_to_markdown.py /path/to/folder -o /output/dir/ --separate
         """
     )
-    parser.add_argument('input_file', help='Input JSON file (chat log)')
-    parser.add_argument('output_file', help='Output markdown file')
+    parser.add_argument('input', nargs='+', help='Input JSON file(s) or folder path')
+    parser.add_argument('-o', '--output', required=True, help='Output markdown file or directory')
+    parser.add_argument('--combine', action='store_true', help='Combine multiple inputs into one file')
+    parser.add_argument('--separate', action='store_true', help='Output separate markdown files (for folder input)')
     
     args = parser.parse_args()
     
+    # Collect all input files
+    input_files = []
+    for input_path in args.input:
+        if os.path.isdir(input_path):
+            # Add all JSON files from directory
+            json_files = sorted([
+                os.path.join(input_path, f) 
+                for f in os.listdir(input_path) 
+                if f.endswith('.json')
+            ])
+            input_files.extend(json_files)
+        elif os.path.isfile(input_path) and input_path.endswith('.json'):
+            input_files.append(input_path)
+        else:
+            print(f"Warning: Skipping {input_path} (not a JSON file or directory)")
+    
+    if not input_files:
+        print("Error: No valid JSON files found")
+        return
+    
     try:
-        # Read the JSON file
-        with open(args.input_file, 'r', encoding='utf-8') as f:
-            chat_data = json.load(f)
+        # Handle different output modes
+        if args.separate:
+            # Separate mode - create individual markdown files (check this first)
+            output_dir = args.output
+            if not os.path.isdir(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+            
+            for input_file in input_files:
+                file_name = os.path.splitext(os.path.basename(input_file))[0]
+                output_file = os.path.join(output_dir, f"{file_name}.md")
+                markdown_content = process_single_file(input_file)
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(markdown_content)
+                print(f"Converted {input_file} to {output_file}")
+            
+            print(f"Successfully converted {len(input_files)} files to {output_dir}")
         
-        # Convert to markdown
-        markdown_content = parse_chat_log(chat_data)
+        elif len(input_files) == 1 and not args.combine:
+            # Single file mode
+            markdown_content = process_single_file(input_files[0])
+            with open(args.output, 'w', encoding='utf-8') as f:
+                f.write(markdown_content)
+            print(f"Successfully converted {input_files[0]} to {args.output}")
         
-        # Write the markdown file
-        with open(args.output_file, 'w', encoding='utf-8') as f:
-            f.write(markdown_content)
+        else:
+            # Combined mode - merge all files with unified TOC and continuous numbering
+            combined_content = parse_combined_chat_logs(input_files)
+            with open(args.output, 'w', encoding='utf-8') as f:
+                f.write(combined_content)
+            print(f"Successfully combined {len(input_files)} files into {args.output}")
         
-        print(f"Successfully converted {args.input_file} to {args.output_file}")
-        
-    except FileNotFoundError:
-        print(f"Error: Could not find input file '{args.input_file}'", file=sys.stderr)
+    except FileNotFoundError as e:
+        print(f"Error: Could not find file: {e}", file=sys.stderr)
         sys.exit(1)
     except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON in '{args.input_file}': {e}", file=sys.stderr)
+        print(f"Error: Invalid JSON: {e}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

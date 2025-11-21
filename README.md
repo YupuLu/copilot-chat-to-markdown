@@ -2,21 +2,62 @@
 
 Convert GitHub Copilot chat logs from VS Code into readable Markdown format. This tool parses the chat JSON export from VS Code and generates clean Markdown files showing the conversation history with proper formatting and navigation.
 
+## Quick Start
+
+### 1. Export Chat from VS Code
+1. Open Command Palette (`Cmd+Shift+P` or `Ctrl+Shift+P`)
+2. Type "Chat: Export Chat" and select it
+3. Save the JSON file
+
+### 2. Convert to Markdown
+```bash
+# Single file
+python3 chat_to_markdown.py chat.json -o output.md
+
+# Multiple files (combined with unified TOC)
+python3 chat_to_markdown.py file1.json file2.json -o combined.md --combine
+
+# Entire folder
+python3 chat_to_markdown.py ./chat_logs/ -o output.md --combine
+
+# Separate files for each input
+python3 chat_to_markdown.py ./chat_logs/ -o ./output/ --separate
+```
+
+### 3. Make Collapsible (Optional)
+For long conversations with many requests:
+```bash
+chmod +x make_collapsible.sh
+./make_collapsible.sh output.md
+```
+
+This wraps each request section in collapsible HTML `<details>` tags, making it easier to navigate long conversations.
+
 ## Features
 
 ### Core Conversion Features
 - ✅ **Clean output**: Filters out internal VS Code metadata while preserving conversation flow
 - ✅ **Preserves markdown formatting**: Bold text, code blocks, lists, and headers render correctly
 - ✅ **Multiple requests**: Handles complete chat sessions with multiple back-and-forth exchanges
+- ✅ **Inline code preservation**: Properly renders backticked file names and code snippets
 
 ### Navigation & Organization
 - ✅ **Table of Contents**: Auto-generated index with clickable links to each request
 - ✅ **Navigation links**: Each request includes ^ (index), < (previous), > (next) navigation
+- ✅ **Status indicators**: Shows CANCELED or ERROR status for incomplete requests
+
+### Batch Processing
+- ✅ **Multi-file support**: Process multiple JSON files at once
+- ✅ **Folder processing**: Automatically discover and process all JSON files in a directory
+- ✅ **Combined mode**: Merge multiple chat logs into one document with unified TOC and continuous numbering
+- ✅ **Separate mode**: Generate individual markdown files for each input
+- ✅ **Collapsible sections**: Optional HTML details/summary tags for easier navigation in long documents
 
 ### Contextual Information
 - ✅ **Shows references**: Displays attached files and settings in expandable sections
 - ✅ **Tool invocation details**: Shows detailed tool operations with input/output in collapsible blocks
 - ✅ **Progress indicators**: Includes progress messages like "✔️ Optimizing tool selection..."
+- ✅ **Timestamps**: Displays when each request was made
 
 ### Metadata & Analytics
 - ✅ **Response timing**: Includes response time information for performance insights
@@ -26,34 +67,76 @@ Convert GitHub Copilot chat logs from VS Code into readable Markdown format. Thi
 
 - Python 3.6+
 - No additional dependencies (uses only standard library)
+- Bash shell (for `make_collapsible.sh` script)
 
-## Usage
+## Usage Examples
 
-### 1. Export Chat from VS Code
-
-First, you need to export your chat history from VS Code:
-
-1. Open the Command Palette (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows/Linux)
-2. Type "Chat: Export Chat" and select it
-3. Choose where to save your chat export JSON file
-4. The file will contain your complete chat history in JSON format
-
-### 2. Convert to Markdown
-
+### Basic Conversion
 ```bash
-python3 chat_to_markdown.py chat.json chat.md
+# Single file
+python3 chat_to_markdown.py chat.json -o output.md
 ```
 
-### 3. View Results
+### Combining Multiple Files
+Merge multiple chat logs into one document with unified TOC and continuous numbering:
+```bash
+# Multiple specific files
+python3 chat_to_markdown.py chat1.json chat2.json chat3.json -o combined.md --combine
 
-Open the generated Markdown file in any Markdown viewer or editor to see your formatted chat history.
+# Entire folder
+python3 chat_to_markdown.py ./chat_logs/ -o combined_all.md --combine
+```
 
-## Sample Files
+**Combined mode features:**
+- Unified Table of Contents organized by file sections
+- Continuous request numbering (1, 2, 3... across all files)
+- File section headers to separate content
+- Seamless navigation across file boundaries
 
-The `samples/` directory contains example files:
+### Separate File Processing
+Process each JSON file independently:
+```bash
+python3 chat_to_markdown.py ./chat_logs/ -o ./markdown_output/ --separate
+```
 
-- **`chat.json`**: Original chat export from VS Code (404KB conversation about a repo organizer project)
-- **`chat.md`**: Output from the conversion script with proper formatting, references, and navigation
+### Adding Collapsibility
+Make sections collapsible for easier navigation in long documents:
+```bash
+./make_collapsible.sh output.md
+```
+
+**What it does:**
+- Wraps each request in `<details open>` tags
+- Creates clickable section headers
+- Creates a `.backup` file before modifying
+- Sections remain expanded by default but can be collapsed
+- Works in GitHub, VS Code, and most markdown viewers
+
+## Known Issues & Fixes
+
+All major issues have been resolved:
+
+✅ **Backtick/Inline Code Rendering** - File names and class names in backticks now display correctly  
+✅ **Text Flow** - Text no longer splits across unnecessary lines  
+✅ **Request Numbering** - Continuous numbering across combined files (no restarts)  
+✅ **Empty Code Blocks** - Automatically removed from output  
+✅ **Paragraph Spacing** - Proper spacing between sections and after collapsible blocks  
+
+## Demo & Sample Files
+
+The `demos/` directory contains:
+
+- **`chat.json`**: Example chat export from VS Code
+- **`chat.md`**: Example output showing proper formatting
+- **`demo_usage.sh`**: Executable script demonstrating all usage modes
+
+Run the demo script to see the tool in action:
+```bash
+cd demos
+./demo_usage.sh
+```
+
+See `data/` folder for additional examples of combined multi-file output.
 
 ## Output Format
 
@@ -117,18 +200,34 @@ The generated Markdown includes:
 
 ### Common Issues
 
-1. **Invalid JSON**: Ensure the exported chat file is valid JSON
+1. **"No valid JSON files found"**
+   - Ensure files have `.json` extension
+   - Check file paths are correct
+   - Verify JSON is valid: `python3 -c "import json; json.load(open('chat.json'))"`
+
+2. **"Permission denied" for make_collapsible.sh**
    ```bash
-   python3 -c "import json; json.load(open('chat.json'))"
+   chmod +x make_collapsible.sh
    ```
 
-2. **Python errors**: Run with error output for debugging
+3. **Empty output**
+   - Check if the input JSON has the expected VS Code chat structure
+   - Try with sample files first to verify setup
+
+4. **Python errors**
    ```bash
-   python3 chat_to_markdown.py chat.json chat.md 2>&1
+   python3 chat_to_markdown.py chat.json -o output.md 2>&1
    ```
 
-3. **Empty output**: Check if the input JSON has the expected VS Code chat structure
-4. **File not found**: Verify file paths are correct and files exist
+## Command Reference
+
+| Task | Command |
+|------|---------|
+| Single file | `python3 chat_to_markdown.py input.json -o output.md` |
+| Multiple files (combined) | `python3 chat_to_markdown.py *.json -o out.md --combine` |
+| Folder (combined) | `python3 chat_to_markdown.py ./folder/ -o out.md --combine` |
+| Folder (separate) | `python3 chat_to_markdown.py ./folder/ -o ./out/ --separate` |
+| Add collapsibility | `./make_collapsible.sh output.md` |
 
 ## Contributing
 
