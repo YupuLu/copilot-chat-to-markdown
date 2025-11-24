@@ -49,7 +49,11 @@ This wraps each request section in collapsible HTML `<details>` tags, making it 
 ### Batch Processing
 - ✅ **Multi-file support**: Process multiple JSON files at once
 - ✅ **Folder processing**: Automatically discover and process all JSON files in a directory
-- ✅ **Combined mode**: Merge multiple chat logs into one document with unified TOC and continuous numbering
+- ✅ **Combined mode**: Merge multiple chat logs into one document with:
+  - **Chronological ordering**: Files automatically sorted by first chat timestamp
+  - **Chat-level grouping**: Requests labeled as "Chat N - Request M" for clarity
+  - **Unified TOC**: Single table of contents organized by chat sessions with clickable links
+  - **Continuous numbering**: Global request numbering across all chats
 - ✅ **Separate mode**: Generate individual markdown files for each input
 - ✅ **Collapsible sections**: Optional HTML details/summary tags for easier navigation in long documents
 
@@ -88,10 +92,12 @@ python3 chat_to_markdown.py ./chat_logs/ -o combined_all.md --combine
 ```
 
 **Combined mode features:**
-- Unified Table of Contents organized by file sections
-- Continuous request numbering (1, 2, 3... across all files)
-- File section headers to separate content
-- Seamless navigation across file boundaries
+- **Chronological ordering**: Files sorted by first chat timestamp (earliest first)
+- **Chat-level structure**: Each file becomes "Chat N" with its own section
+- **Smart labeling**: Requests shown as "Chat N - Request M" for better context
+- **Unified Table of Contents**: Organized by chat sessions with clickable chat headers
+- **Continuous global numbering**: Requests numbered sequentially across all chats
+- **Easy navigation**: Links to jump between chats and return to TOC
 
 ### Separate File Processing
 Process each JSON file independently:
@@ -121,6 +127,9 @@ All major issues have been resolved:
 ✅ **Request Numbering** - Continuous numbering across combined files (no restarts)  
 ✅ **Empty Code Blocks** - Automatically removed from output  
 ✅ **Paragraph Spacing** - Proper spacing between sections and after collapsible blocks  
+✅ **Nested Code Blocks** - Fixed rendering issues when tool invocations contain files with code blocks  
+✅ **Jupyter Notebooks** - Notebook content properly wrapped in collapsible sections  
+✅ **Tool Result Formatting** - Simplified "Read file" results to avoid markdown nesting conflicts  
 
 ## Demo & Sample Files
 

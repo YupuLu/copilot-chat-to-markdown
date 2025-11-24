@@ -424,48 +424,80 @@ def format_tool_invocation_details(tool_data: Dict[str, Any], tool_call_results:
     
     # If we have tool result content, use it; otherwise fall back to old method
     if tool_result_content.strip():
-        # Build the details block with actual file content
-        lines = []
-        lines.append(f"<details>")
-        lines.append(f"  <summary>{invocation_msg}</summary>")
+        # IMPORTANT: Process any nested tool invocations FIRST before counting backticks
+        # This ensures we count backticks in the FINAL formatted content, not the raw content with markers
+        if '__TOOL_INVOCATION__' in tool_result_content:
+            tool_result_content = process_special_markers(tool_result_content, tool_call_results, tool_call_rounds)
         
-        # Check if the content already contains code fencing
-        has_code_fencing = '```' in tool_result_content
+        # Simplify format: Remove "File: path. Lines X-Y: ```lang" header that causes nesting issues
+        import re
+        # Pattern: "File: `path`. Lines X to Y (Z lines total): ```lang"
+        file_header_pattern = r'^File:.*?Lines \d+ to \d+.*?:\s*```(\w+)\s*\n'
+        match = re.match(file_header_pattern, tool_result_content, re.MULTILINE)
         
-        lines.append(f"")
-        
-        if has_code_fencing:
-            # Content already has code blocks, use 4 backticks to safely wrap it
-            lines.append(f"````")
-            lines.append(tool_result_content.rstrip())
-            lines.append(f"````")
-        else:
-            # Determine content type for syntax highlighting
-            file_ext = ""
-            if 'file://' in original_invocation_msg:
-                import re
-                file_match = re.search(r'(\.\w+)', original_invocation_msg)
-                if file_match:
-                    file_ext = file_match.group(1)
+        if match:
+            # Extract language and remove the header line
+            lang = match.group(1)
+            # Remove everything up to and including the first newline after ```lang
+            simplified_content = tool_result_content[match.end():]
+            # Remove trailing ``` if present
+            if simplified_content.rstrip().endswith('```'):
+                simplified_content = simplified_content.rstrip()[:-3].rstrip()
             
-            # Map file extensions to language identifiers
-            lang_map = {
-                '.md': 'markdown',
-                '.py': 'python', 
-                '.js': 'javascript',
-                '.json': 'json',
-                '.yaml': 'yaml',
-                '.yml': 'yaml',
-                '.html': 'html',
-                '.css': 'css',
-                '.sh': 'bash',
-                '.txt': 'text'
-            }
-            lang = lang_map.get(file_ext, '')
-            
+            # Build clean format without nested fences
+            lines = []
+            lines.append(f"<details>")
+            lines.append(f"  <summary>{invocation_msg}</summary>")
+            lines.append(f"")
             lines.append(f"```{lang}")
-            lines.append(tool_result_content.rstrip())
+            lines.append(simplified_content.rstrip())
             lines.append(f"```")
+        else:
+            # Fallback for other content formats
+            lines = []
+            lines.append(f"<details>")
+            lines.append(f"  <summary>{invocation_msg}</summary>")
+            lines.append(f"")
+            
+            # Check if the content already contains code fencing
+            has_code_fencing = '```' in tool_result_content
+            
+            if has_code_fencing:
+                # Content already has code blocks, determine safe number of backticks
+                backtick_sequences = re.findall(r'`+', tool_result_content)
+                max_backticks = max((len(seq) for seq in backtick_sequences), default=3)
+                # Use one more than the maximum found
+                fence_backticks = '`' * (max_backticks + 1)
+                
+                lines.append(f"{fence_backticks}markdown")
+                lines.append(tool_result_content.rstrip())
+                lines.append(fence_backticks)
+            else:
+                # No code fencing, determine content type for syntax highlighting
+                file_ext = ""
+                if 'file://' in original_invocation_msg:
+                    file_match = re.search(r'(\.\w+)', original_invocation_msg)
+                    if file_match:
+                        file_ext = file_match.group(1)
+                
+                # Map file extensions to language identifiers
+                lang_map = {
+                    '.md': 'markdown',
+                    '.py': 'python', 
+                    '.js': 'javascript',
+                    '.json': 'json',
+                    '.yaml': 'yaml',
+                    '.yml': 'yaml',
+                    '.html': 'html',
+                    '.css': 'css',
+                    '.sh': 'bash',
+                    '.txt': 'text'
+                }
+                lang = lang_map.get(file_ext, '')
+                
+                lines.append(f"```{lang}")
+                lines.append(tool_result_content.rstrip())
+                lines.append(f"```")
         
         lines.append(f"")
         lines.append(f"</details>")
@@ -709,12 +741,19 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                 if i < len(sorted_edits):
                     combined_content.append("")  # Blank line separator
             
-            # Use 4 backticks if content has code blocks, otherwise 3
+            # Use appropriate number of backticks based on content
             final_content = '\n'.join(combined_content)
             if has_code_blocks or '```' in final_content:
-                lines.append(f"````{lang}")
+                import re
+                # Find the maximum number of consecutive backticks in the content
+                backtick_sequences = re.findall(r'`+', final_content)
+                max_backticks = max((len(seq) for seq in backtick_sequences), default=3)
+                # Use one more than the maximum found, but at least 4
+                fence_backticks = '`' * max(max_backticks + 1, 4)
+                
+                lines.append(f"{fence_backticks}{lang}")
                 lines.append(final_content)
-                lines.append(f"````")
+                lines.append(f"{fence_backticks}")
             else:
                 lines.append(f"```{lang}")
                 lines.append(final_content)
@@ -1131,11 +1170,9 @@ def process_single_file(input_file: str, file_title: str = None) -> str:
     return markdown_content
 
 def parse_combined_chat_logs(file_paths: List[str]) -> str:
-    """Parse multiple chat logs with continuous numbering and unified TOC."""
-    all_requests = []
-    file_boundaries = []  # Track which file each request came from
-    
-    # Load all chat data and collect requests
+    """Parse multiple chat logs with continuous numbering and unified TOC, sorted by timestamp."""
+    # Load all chat data first and get first timestamp for sorting
+    chat_files = []
     for file_path in file_paths:
         with open(file_path, 'r', encoding='utf-8') as f:
             chat_data = json.load(f)
@@ -1143,15 +1180,38 @@ def parse_combined_chat_logs(file_paths: List[str]) -> str:
         file_name = os.path.splitext(os.path.basename(file_path))[0]
         requests = chat_data.get('requests', [])
         
-        file_boundaries.append({
-            'start_index': len(all_requests),
-            'end_index': len(all_requests) + len(requests),
+        # Get first timestamp for sorting
+        first_timestamp = None
+        if requests and len(requests) > 0:
+            first_timestamp = requests[0].get('timestamp', 0)
+        
+        chat_files.append({
+            'file_path': file_path,
             'file_name': file_name,
+            'chat_data': chat_data,
+            'requests': requests,
+            'first_timestamp': first_timestamp or 0,
             'requester': chat_data.get('requesterUsername', 'User'),
             'responder': chat_data.get('responderUsername', 'GitHub Copilot')
         })
+    
+    # Sort by first timestamp (chronological order)
+    chat_files.sort(key=lambda x: x['first_timestamp'])
+    
+    # Now build the combined structure with sorted files
+    all_requests = []
+    file_boundaries = []  # Track which file each request came from
+    
+    for chat_file in chat_files:
+        file_boundaries.append({
+            'start_index': len(all_requests),
+            'end_index': len(all_requests) + len(chat_file['requests']),
+            'file_name': chat_file['file_name'],
+            'requester': chat_file['requester'],
+            'responder': chat_file['responder']
+        })
         
-        all_requests.extend(requests)
+        all_requests.extend(chat_file['requests'])
     
     # Build combined markdown
     md_lines = []
@@ -1169,12 +1229,16 @@ def parse_combined_chat_logs(file_paths: List[str]) -> str:
         md_lines.append("## Table of Contents")
         md_lines.append("")
         
-        # Add file sections to TOC
-        for boundary in file_boundaries:
-            md_lines.append(f"### {boundary['file_name']}")
+        # Add file sections to TOC with chat numbering
+        for chat_num, boundary in enumerate(file_boundaries, 1):
+            # Add chat section header (no anchor link since we removed the anchor)
+            # Escape square brackets in file names to prevent markdown link parsing issues
+            file_name_escaped = boundary['file_name'].replace('[', '\\[').replace(']', '\\]')
+            md_lines.append(f"### Chat {chat_num}: {file_name_escaped}")
             md_lines.append("")
             for i in range(boundary['start_index'], boundary['end_index']):
                 req_num = i + 1
+                local_req_num = i - boundary['start_index'] + 1
                 request = all_requests[i]
                 
                 # Extract first line of user message for preview
@@ -1199,7 +1263,7 @@ def parse_combined_chat_logs(file_paths: List[str]) -> str:
                 else:
                     first_line = "[No message content]"
                 
-                md_lines.append(f"- [Request {req_num}](#request-{req_num}): {first_line}")
+                md_lines.append(f"- [Request {local_req_num}](#chat-{chat_num}-request-{local_req_num}): {first_line}")
             md_lines.append("")
         
     md_lines.append("---")
@@ -1209,14 +1273,18 @@ def parse_combined_chat_logs(file_paths: List[str]) -> str:
     for i, request in enumerate(all_requests):
         req_num = i + 1
         
-        # Find which file this request belongs to
+        # Find which file/chat this request belongs to
         current_file = None
-        for boundary in file_boundaries:
+        current_chat_num = None
+        local_req_num = None
+        for chat_idx, boundary in enumerate(file_boundaries, 1):
             if boundary['start_index'] <= i < boundary['end_index']:
                 current_file = boundary['file_name']
-                # Add file header if this is the first request from this file
+                current_chat_num = chat_idx
+                local_req_num = i - boundary['start_index'] + 1
+                # Add chat header if this is the first request from this chat
                 if i == boundary['start_index']:
-                    md_lines.append(f"## {current_file}")
+                    md_lines.append(f"## Chat {chat_idx}: {current_file}")
                     md_lines.append("")
                 break
         
@@ -1235,18 +1303,40 @@ def parse_combined_chat_logs(file_paths: List[str]) -> str:
         # Navigation links
         nav_links = []
         nav_links.append("[^](#table-of-contents)")
+        
+        # Previous link
         if req_num > 1:
-            nav_links.append(f"[<](#request-{req_num-1})")
+            # Find previous request's chat and local number
+            prev_chat_num = None
+            prev_local_num = None
+            for chat_idx, boundary in enumerate(file_boundaries, 1):
+                if boundary['start_index'] <= (i-1) < boundary['end_index']:
+                    prev_chat_num = chat_idx
+                    prev_local_num = (i-1) - boundary['start_index'] + 1
+                    break
+            if prev_chat_num and prev_local_num:
+                nav_links.append(f"[<](#chat-{prev_chat_num}-request-{prev_local_num})")
         else:
             nav_links.append("<")
+        
+        # Next link
         if req_num < len(all_requests):
-            nav_links.append(f"[>](#request-{req_num+1})")
+            # Find next request's chat and local number
+            next_chat_num = None
+            next_local_num = None
+            for chat_idx, boundary in enumerate(file_boundaries, 1):
+                if boundary['start_index'] <= (i+1) < boundary['end_index']:
+                    next_chat_num = chat_idx
+                    next_local_num = (i+1) - boundary['start_index'] + 1
+                    break
+            if next_chat_num and next_local_num:
+                nav_links.append(f"[>](#chat-{next_chat_num}-request-{next_local_num})")
         else:
             nav_links.append(">")
         
-        # Add request header
-        md_lines.append(f'<a name="request-{req_num}"></a>')
-        md_lines.append(f"### Request {req_num} {' '.join(nav_links)}{status_text}")
+        # Add request header with chat context
+        md_lines.append(f'<a name="chat-{current_chat_num}-request-{local_req_num}"></a>')
+        md_lines.append(f"### Chat {current_chat_num}-Request {local_req_num} {' '.join(nav_links)}{status_text}")
         md_lines.append("")
         
         # Add timestamp if available
