@@ -73,6 +73,34 @@ This wraps each request section in collapsible HTML `<details>` tags, making it 
 - No additional dependencies (uses only standard library)
 - Bash shell (for `make_collapsible.sh` script)
 
+## Project Structure
+
+The codebase is organized into a modular package for maintainability:
+
+```
+copilot-chat-to-markdown/
+├── chat_to_markdown.py      # Main CLI entry point (simplified)
+├── chat_converter/          # Core conversion package
+│   ├── __init__.py          # Package exports
+│   ├── text_processing.py   # Text extraction and formatting
+│   ├── formatters.py        # Basic formatters (timestamp, errors, references)
+│   ├── tool_formatters.py   # Tool invocation and edit group formatters
+│   └── parser.py            # Chat log parsing and markdown generation
+├── make_collapsible.sh      # Script to add collapsible sections
+├── demos/                   # Example files and demo scripts
+├── data/                    # Sample JSON files for testing
+└── backup/                  # Backup of original monolithic script
+```
+
+### Module Overview
+
+| Module | Purpose |
+|--------|---------|
+| `text_processing.py` | Extract text from response parts, balance code fences, format messages |
+| `formatters.py` | Format timestamps, error messages, and file references |
+| `tool_formatters.py` | Format tool invocations, file edits, and progress tasks |
+| `parser.py` | Parse chat logs and generate markdown with TOC and navigation |
+
 ## Usage Examples
 
 ### Basic Conversion
