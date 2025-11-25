@@ -124,6 +124,90 @@ def smart_join_parts(parts: list) -> str:
     
     return ''.join(result)
 
+def balance_code_fences(text: str) -> str:
+    """Balance code fences by fixing unmatched fences to prevent rendering issues."""
+    import re
+    
+    # Find all code fences with their backtick counts and positions
+    # Opening fence: 3+ backticks with optional language
+    # Closing fence: when stack active, any number of backticks without language
+    fence_pattern = r'^(`{3,})(\w*)\s*$'
+    lines = text.split('\n')
+    fence_stack = []  # Stack to track opening fences
+    
+    # Track whether we're inside a <details> block (skip balancing there)
+    in_details = False
+    
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        
+        # Track <details> blocks - don't balance fences inside them
+        if '<details>' in line:
+            in_details = True
+            continue
+        elif '</details>' in line:
+            in_details = False
+            continue
+        
+        # Skip fence processing inside <details> blocks
+        if in_details:
+            continue
+        
+        match = re.match(fence_pattern, stripped)
+        
+        if match:
+            backticks = match.group(1)
+            lang = match.group(2)
+            backtick_count = len(backticks)
+            
+            # If there's an opening fence on the stack with same backtick count, this closes it
+            if lang:  # Opening fence (has language identifier)
+                fence_stack.append({'count': backtick_count, 'line': i, 'backticks': backticks, 'lang': lang})
+            elif fence_stack:  # Closing fence (no language)
+                if fence_stack[-1]['count'] == backtick_count:
+                    # Proper match - close it
+                    fence_stack.pop()
+                else:
+                    # Wrong backtick count - fix it to match the opening
+                    expected_count = fence_stack[-1]['count']
+                    expected_backticks = '`' * expected_count
+                    lines[i] = expected_backticks
+                    fence_stack.pop()
+            else:  # Closing fence without opening - escape it
+                lines[i] = line.replace(backticks, '\\' + backticks, 1)
+        elif fence_stack and re.match(r'^`+$', stripped):
+            # Line is only backticks (any count) and we have an open fence - this is a closing fence
+            backtick_count = len(stripped)
+            expected_count = fence_stack[-1]['count']
+            expected_backticks = '`' * expected_count
+            lines[i] = expected_backticks
+            fence_stack.pop()
+    
+    # Fix any unmatched opening fences
+    for fence in fence_stack:
+        # If it's a 4+ backtick fence, convert it to 3 backticks
+        if fence['count'] >= 4:
+            lines[fence['line']] = lines[fence['line']].replace(fence['backticks'], '```', 1)
+            # Add a closing fence after finding where it should end (heuristic: before next section marker or end)
+            # Search for likely end markers like "---", blank line followed by header, or end of text
+            for j in range(fence['line'] + 1, len(lines)):
+                stripped = lines[j].strip()
+                # Look for section breaks
+                if (stripped == '---' or 
+                    (j < len(lines) - 1 and lines[j] == '' and lines[j+1].strip().startswith('#')) or
+                    stripped.startswith('<a name=')):
+                    # Insert closing fence before this line
+                    lines.insert(j, '```')
+                    break
+            else:
+                # If no clear end found, add at the end
+                lines.append('```')
+        else:
+            # For 3-backtick fences, just escape them
+            lines[fence['line']] = lines[fence['line']].replace(fence['backticks'], '\\' + fence['backticks'], 1)
+    
+    return '\n'.join(lines)
+
 def format_message_text(text: str) -> str:
     """Format message text with proper markdown."""
     if not text:
@@ -167,6 +251,9 @@ def format_message_text(text: str) -> str:
     
     text = '\n'.join(formatted_lines)
     
+    # Balance code fences to prevent rendering issues
+    text = balance_code_fences(text)
+    
     # Clean up excessive whitespace but preserve intentional line breaks
     lines = text.split('\n')
     formatted_lines = []
@@ -199,10 +286,10 @@ def format_message_text(text: str) -> str:
     
     # Remove empty code blocks (``` followed immediately by ```)
     text_result = '\n'.join(result_lines)
-    import re
     # Remove empty code blocks with optional language specifier (``` followed immediately by ```)
-    # This pattern ensures we only remove when there's truly nothing between the markers
-    text_result = re.sub(r'```[a-z]*\s*\n\s*```', '', text_result)
+    # Use line-anchored pattern to avoid matching partial fences like "```\n````"
+    # which would incorrectly consume backticks from adjacent fences
+    text_result = re.sub(r'^```[a-z]*\s*\n```\s*$', '', text_result, flags=re.MULTILINE)
     
     return text_result
 
@@ -431,18 +518,19 @@ def format_tool_invocation_details(tool_data: Dict[str, Any], tool_call_results:
         
         # Simplify format: Remove "File: path. Lines X-Y: ```lang" header that causes nesting issues
         import re
-        # Pattern: "File: `path`. Lines X to Y (Z lines total): ```lang"
-        file_header_pattern = r'^File:.*?Lines \d+ to \d+.*?:\s*```(\w+)\s*\n'
+        # Pattern: "File: `path`. Lines X to Y (Z lines total): ```(`)lang" - handles multiple backticks
+        file_header_pattern = r'^File:.*?Lines \d+ to \d+.*?:\s*(`+)(\w+)\s*\n'
         match = re.match(file_header_pattern, tool_result_content, re.MULTILINE)
         
         if match:
-            # Extract language and remove the header line
-            lang = match.group(1)
+            # Extract backticks and language
+            backticks = match.group(1)  # The backtick sequence (```, ````, etc.)
+            lang = match.group(2)       # The language identifier
             # Remove everything up to and including the first newline after ```lang
             simplified_content = tool_result_content[match.end():]
-            # Remove trailing ``` if present
-            if simplified_content.rstrip().endswith('```'):
-                simplified_content = simplified_content.rstrip()[:-3].rstrip()
+            # Remove trailing backticks if present (matching the opening count)
+            if simplified_content.rstrip().endswith(backticks):
+                simplified_content = simplified_content.rstrip()[:-len(backticks)].rstrip()
             
             # Build clean format without nested fences
             lines = []
@@ -604,16 +692,23 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                         lines.append(f"  <p><strong>Modified lines {start_line}-{end_line}:</strong></p>")
                     lines.append(f"")
             
-            # Check if content contains triple backticks
-            if '```' in text_content:
-                # Use 4 backticks to safely contain the 3-backtick content
-                lines.append(f"````{lang}")
-                lines.append(text_content.rstrip())
-                lines.append(f"````")
-            else:
-                lines.append(f"```{lang}")
-                lines.append(text_content.rstrip())
-                lines.append(f"```")
+            # Check if content contains backtick fences - count the max and use one more
+            max_backticks = 3
+            fence_matches = re.findall(r'`+', text_content)
+            if fence_matches:
+                max_backticks = max(len(m) for m in fence_matches) + 1
+                # Ensure at least 3
+                max_backticks = max(3, max_backticks)
+            
+            backticks = '`' * max_backticks
+            # Don't use rstrip() - it might remove important content
+            # Instead, manually ensure clean boundaries
+            clean_content = text_content
+            if clean_content.endswith('\n'):
+                clean_content = clean_content[:-1]
+            lines.append(f"{backticks}{lang}")
+            lines.append(clean_content)
+            lines.append(backticks)
         
         # If there are multiple edits, try to consolidate them intelligently
         elif len(all_edits) <= 5:  # Show up to 5 edits separately
@@ -634,16 +729,17 @@ def format_text_edit_group(edit_data: Dict[str, Any]) -> str:
                             lines.append(f"  <p><strong>Lines {start_line}-{end_line}:</strong></p>")
                         lines.append(f"")
                 
-                # Check if content contains triple backticks
-                if '```' in text_content:
-                    # Use 4 backticks to safely contain the 3-backtick content
-                    lines.append(f"````{lang}")
-                    lines.append(text_content.rstrip())
-                    lines.append(f"````")
-                else:
-                    lines.append(f"```{lang}")
-                    lines.append(text_content.rstrip())
-                    lines.append(f"```")
+                # Check if content contains backtick fences - count the max and use one more
+                max_backticks = 3
+                fence_matches = re.findall(r'`+', text_content)
+                if fence_matches:
+                    max_backticks = max(len(m) for m in fence_matches) + 1
+                    max_backticks = max(3, max_backticks)
+                
+                backticks = '`' * max_backticks
+                lines.append(f"{backticks}{lang}")
+                lines.append(text_content.rstrip())
+                lines.append(backticks)
         
         # If there are many edits, group them into a single consolidated block
         else:
@@ -815,6 +911,12 @@ def process_special_markers(text: str, tool_call_results: Dict[str, Any] = None,
     # But NOT numbered list items like "1.\n\n**Header**"
     text = re.sub(r'([a-z][.!?])\s*(\*\*[A-Z])', r'\1\n\n\2', text)
     
+    # Fix spacing: Ensure <details> tags start on a new line after list items or headers
+    # Pattern matches: numbered list item, header, or any line ending, followed by <details>
+    text = re.sub(r'(\n(?:\d+\.|#+)\s+[^\n]+?)(<details>)', r'\1\n\n\2', text)
+    # Also handle case where <details> directly follows text without newline
+    text = re.sub(r'([^\n])(<details>)', r'\1\n\n\2', text)
+    
     return text
 
 def format_tool_calls(tool_calls: list) -> str:
@@ -974,7 +1076,9 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
         
         # Add explicit anchor and header with navigation
         md_lines.append(f'<a name="request-{i}"></a>')
-        md_lines.append(f"## Request {i} {' '.join(nav_links)}{status_text}")
+        md_lines.append(f"## Request {i} {' '.join(nav_links)}")
+        if status_text:
+            md_lines.append(status_text)
         md_lines.append("")
         
         # Add timestamp if available
@@ -1336,7 +1440,9 @@ def parse_combined_chat_logs(file_paths: List[str]) -> str:
         
         # Add request header with chat context
         md_lines.append(f'<a name="chat-{current_chat_num}-request-{local_req_num}"></a>')
-        md_lines.append(f"### Chat {current_chat_num}-Request {local_req_num} {' '.join(nav_links)}{status_text}")
+        md_lines.append(f"### Chat {current_chat_num}-Request {local_req_num} {' '.join(nav_links)}")
+        if status_text:
+            md_lines.append(status_text)
         md_lines.append("")
         
         # Add timestamp if available
