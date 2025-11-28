@@ -158,23 +158,31 @@ def format_tool_invocation_details(tool_data: Dict[str, Any], tool_call_results:
         match = re.match(file_header_pattern, tool_result_content, re.MULTILINE)
         
         if match:
-            # Extract backticks and language
-            backticks = match.group(1)  # The backtick sequence (```, ````, etc.)
+            # Extract backticks and language from the original header
+            original_backticks = match.group(1)  # The backtick sequence (```, ````, etc.)
             lang = match.group(2)       # The language identifier
             # Remove everything up to and including the first newline after ```lang
             simplified_content = tool_result_content[match.end():]
             # Remove trailing backticks if present (matching the opening count)
-            if simplified_content.rstrip().endswith(backticks):
-                simplified_content = simplified_content.rstrip()[:-len(backticks)].rstrip()
+            if simplified_content.rstrip().endswith(original_backticks):
+                simplified_content = simplified_content.rstrip()[:-len(original_backticks)].rstrip()
             
-            # Build clean format without nested fences
+            # IMPORTANT: Check if the simplified content contains code fences
+            # If so, we need to use more backticks than the maximum found
+            backtick_sequences = re.findall(r'`+', simplified_content)
+            max_backticks_in_content = max((len(seq) for seq in backtick_sequences), default=0)
+            # Use at least 3 backticks, but more if content has code fences
+            num_backticks = max(3, max_backticks_in_content + 1)
+            fence_backticks = '`' * num_backticks
+            
+            # Build clean format with properly nested fences
             lines = []
             lines.append(f"<details>")
             lines.append(f"  <summary>{invocation_msg}</summary>")
             lines.append(f"")
-            lines.append(f"```{lang}")
+            lines.append(f"{fence_backticks}{lang}")
             lines.append(simplified_content.rstrip())
-            lines.append(f"```")
+            lines.append(f"{fence_backticks}")
         else:
             # Fallback for other content formats
             lines = []

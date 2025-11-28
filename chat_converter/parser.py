@@ -75,17 +75,17 @@ def parse_chat_log(chat_data: Dict[str, Any]) -> str:
     for i, request in enumerate(requests, 1):
         # User message with navigation links on same line
         nav_links = []
-        nav_links.append("[^](#table-of-contents)")  # Up to table of contents
+        nav_links.append("[^^^](#table-of-contents)")  # Up to table of contents
         
         if i > 1:  # Previous request link
-            nav_links.append(f"[<](#request-{i-1})")
+            nav_links.append(f"[<<<](#request-{i-1})")
         else:
-            nav_links.append("<")  # Placeholder for first request
+            nav_links.append("<<<")  # Placeholder for first request
             
         if i < len(requests):  # Next request link
-            nav_links.append(f"[>](#request-{i+1})")
+            nav_links.append(f"[>>>](#request-{i+1})")
         else:
-            nav_links.append(">")  # Placeholder for last request
+            nav_links.append(">>>")  # Placeholder for last request
         
         # Get result for status checking
         result = request.get('result', {})

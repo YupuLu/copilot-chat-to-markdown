@@ -287,4 +287,31 @@ def format_message_text(text: str) -> str:
     # which would incorrectly consume backticks from adjacent fences
     text_result = re.sub(r'^```[a-z]*\s*\n```\s*$', '', text_result, flags=re.MULTILINE)
     
+    # Fix KaTeX parsing issues: when $$ block is followed by text on the same line,
+    # add a newline to separate them. This commonly happens with proof end symbols (∎)
+    # and prevents errors like "Can't use function '$' in math mode"
+    # Pattern: $$<end of math> followed by any non-whitespace on same line
+    text_result = re.sub(r'\$\$\s*(\S)', r'$$\n\1', text_result)
+    
     return text_result
+
+
+def strip_details_blocks(text: str) -> str:
+    """
+    Remove all <details>...</details> blocks from the markdown.
+    
+    This is useful for creating a compact version of the output that
+    excludes file read contents, tool invocation details, etc.
+    Also cleans up any orphaned <br /> tags that were added after details blocks.
+    """
+    # Remove <details>...</details> blocks (including nested content)
+    # Use non-greedy matching and handle multiline
+    result = re.sub(r'<details>.*?</details>\s*', '', text, flags=re.DOTALL)
+    
+    # Clean up orphaned <br /> tags that were added after details blocks
+    result = re.sub(r'\n<br />\s*\n', '\n', result)
+    
+    # Clean up excessive blank lines that may result from removal
+    result = re.sub(r'\n{3,}', '\n\n', result)
+    
+    return result

@@ -18,6 +18,7 @@ from chat_converter import (
     parse_chat_log,
     process_single_file,
     parse_combined_chat_logs,
+    strip_details_blocks,
 )
 
 
@@ -44,6 +45,7 @@ Examples:
     parser.add_argument('-o', '--output', required=True, help='Output markdown file or directory')
     parser.add_argument('--combine', action='store_true', help='Combine multiple inputs into one file')
     parser.add_argument('--separate', action='store_true', help='Output separate markdown files (for folder input)')
+    parser.add_argument('--compact', action='store_true', help='Exclude <details> blocks (file reads, tool outputs) for shorter output')
     
     args = parser.parse_args()
     
@@ -79,6 +81,8 @@ Examples:
                 file_name = os.path.splitext(os.path.basename(input_file))[0]
                 output_file = os.path.join(output_dir, f"{file_name}.md")
                 markdown_content = process_single_file(input_file)
+                if args.compact:
+                    markdown_content = strip_details_blocks(markdown_content)
                 with open(output_file, 'w', encoding='utf-8') as f:
                     f.write(markdown_content)
                 print(f"Converted {input_file} to {output_file}")
@@ -88,6 +92,8 @@ Examples:
         elif len(input_files) == 1 and not args.combine:
             # Single file mode
             markdown_content = process_single_file(input_files[0])
+            if args.compact:
+                markdown_content = strip_details_blocks(markdown_content)
             with open(args.output, 'w', encoding='utf-8') as f:
                 f.write(markdown_content)
             print(f"Successfully converted {input_files[0]} to {args.output}")
@@ -95,6 +101,8 @@ Examples:
         else:
             # Combined mode - merge all files with unified TOC and continuous numbering
             combined_content = parse_combined_chat_logs(input_files)
+            if args.compact:
+                combined_content = strip_details_blocks(combined_content)
             with open(args.output, 'w', encoding='utf-8') as f:
                 f.write(combined_content)
             print(f"Successfully combined {len(input_files)} files into {args.output}")

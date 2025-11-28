@@ -9,6 +9,7 @@ from .text_processing import (
     smart_join_parts,
     balance_code_fences,
     format_message_text,
+    strip_details_blocks,
 )
 
 from .formatters import (
@@ -39,6 +40,7 @@ __all__ = [
     'smart_join_parts',
     'balance_code_fences',
     'format_message_text',
+    'strip_details_blocks',
     # Basic formatters
     'format_timestamp',
     'format_error_message',
