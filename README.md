@@ -87,9 +87,7 @@ copilot-chat-to-markdown/
 │   ├── tool_formatters.py   # Tool invocation and edit group formatters
 │   └── parser.py            # Chat log parsing and markdown generation
 ├── make_collapsible.sh      # Script to add collapsible sections
-├── demos/                   # Example files and demo scripts
-├── data/                    # Sample JSON files for testing
-└── backup/                  # Backup of original monolithic script
+└── demos/                   # Example files and demo scripts
 ```
 
 ### Module Overview
